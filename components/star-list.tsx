@@ -6,9 +6,13 @@ import { ModeToggle } from '@/components/mode-toggle';
 import { StarGroupList } from '@/components/star-group';
 import { StarGroup, StarItem } from '@/lib/types';
 import { StarItemRow } from '@/components/star-item';
+import { useState } from 'react';
+import { AddItemModal } from './add-item-modal';
 
 
 export function StarList() {
+  const [showAddModal, setShowAddModal] = useState(false);
+
   const dummyGroups: StarGroup[] = [
     {
       id: '1',
@@ -130,7 +134,7 @@ export function StarList() {
         </div>
 
         <div className="flex gap-3 mb-6 flex-wrap items-center">
-          <Button>
+          <Button onClick={() => setShowAddModal(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Item
           </Button>
@@ -173,6 +177,11 @@ export function StarList() {
           ))}
         </div>
       </div>
+
+      <AddItemModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+      />
     </div>
   );
 }
