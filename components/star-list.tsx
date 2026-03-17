@@ -12,99 +12,65 @@ import { AddItemModal } from './add-item-modal';
 
 export function StarList() {
   const [showAddModal, setShowAddModal] = useState(false);
+  
+  const items: StarItem[] = [];
+  const groups: StarGroup[] = [];
 
-  const dummyGroups: StarGroup[] = [
-    {
-      id: '1',
-      name: 'Group 1',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '2',
-      name: 'Group 2',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      parentId: '1',
-    },
-    {
-      id: '3',
-      name: 'Group 3',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '4',
-      name: 'Group 4',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      parentId: '3',
-    },
-  ];
-  const dummyItems: StarItem[] = [
-    {
-      id: '1',
-      name: 'Item 1',
-      price: 100,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      notes: 'This is a note for Item 1.\nIt can have multiple lines.',
-      links: [{ url: 'https://example.com/item1', label: 'Example Link' }, { url: 'https://example.com/item1-2' }, { url: 'https://example.com/item1-3' }],
-      priority: 3,
-    },
-    {
-      id: '2',
-      name: 'Item 2',
-      price: 200,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      notes: 'This is a note for Item 2.\nIt can have multiple lines.',
-      links: [],
-      priority: 2,
-      groupId: '1',
-    },
-    {
-      id: '3',
-      name: 'Item 3',
-      price: 300,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      links: [{ url: 'https://example.com/item3' }],
-      priority: 1,
-      groupId: '2',
-    },
-    {
-      id: '4',
-      name: 'Item 4',
-      price: 400,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      links: [],
-      priority: 4,
-      groupId: '1',
-    },
-    {
-      id: '5',
-      name: 'Item 5',
-      price: 500,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      links: [],
-      priority: 5,
-      groupId: '4',
+  if (typeof window !== 'undefined') {
+    const storedItems = localStorage.getItem('starItems');
+    const storedGroups = localStorage.getItem('starGroups');
+
+    if (storedItems) {
+      JSON.parse(storedItems).forEach((item: any) => {
+        items.push({
+          ...item,
+        });
+      });
     }
-  ];
+    if (storedGroups) {
+      JSON.parse(storedGroups).forEach((group: any) => {
+        groups.push({
+          ...group,
+        });
+      });
+    }
+  }
+
+  function addItem(newItem: StarItem, index?: number): string {
+    if (index !== undefined) {
+      const updatedItems = [...items];
+      updatedItems.splice(index, 0, newItem);
+      localStorage.setItem('starItems', JSON.stringify(updatedItems));
+      return newItem.id;
+    }
+    const updatedItems = [...items, newItem];
+    localStorage.setItem('starItems', JSON.stringify(updatedItems));
+    return newItem.id;
+  }
+  function addGroup(groupName: string, parentId?: string): string | undefined {
+    if (groups.some((g) => g.name === groupName)) {
+      return groups.find((g) => g.name === groupName)?.id;
+    }
+    const newGroup: StarGroup = {
+      id: crypto.randomUUID(),
+      name: groupName,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      parentId,
+    };
+    const updatedGroups = [...groups, newGroup];
+    localStorage.setItem('starGroups', JSON.stringify(updatedGroups));
+    return newGroup.id;
+  }
 
   const groupedItems = new Map<string, StarItem[]>();
-  dummyItems.forEach((item) => {
+  items.forEach((item) => {
     let currentGroupId = item.groupId;
     while (currentGroupId) {
-      const group = dummyGroups.find((g) => g.id === currentGroupId);
+      const group = groups.find((g) => g.id === currentGroupId);
       if (group && group.parentId) {
         currentGroupId = group.parentId;
-        console.log(`Group found: ${group.name} with parentId: ${group.parentId}`);
       } else {
-        console.warn(`Group with id ${currentGroupId} not found for item ${item.name}`);
         break;
       }
     }
@@ -117,10 +83,11 @@ export function StarList() {
     }
   });
 
-  const rootGroups = dummyGroups.filter((g) => !g.parentId);
-  const rootItems = dummyItems
+  const rootGroups = groups.filter((g) => !g.parentId);
+  const rootItems = items
     .filter((item) => !item.groupId)
     .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+ 
   const totalPrice = rootItems.reduce((sum, item) => sum + (item.price || 0), 0);
   
   return (
@@ -141,6 +108,12 @@ export function StarList() {
         </div>
 
         <div className="space-y-5">
+          {rootItems.length === 0 && rootGroups.length === 0 && (
+            <div className="text-center text-muted-foreground py-10">
+              No starred items yet. Click the "Add Item" button to get started!
+            </div>
+          )}
+
           {rootItems.length > 0 && (
             <div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg mb-2">
@@ -172,7 +145,7 @@ export function StarList() {
               key={group.id}
               group={group}
               items={groupedItems.get(group.id) || []}
-              subgroups={dummyGroups.filter((g) => g.parentId === group.id)}
+              subgroups={groups.filter((g) => g.parentId === group.id)}
             />
           ))}
         </div>
@@ -181,6 +154,8 @@ export function StarList() {
       <AddItemModal
         open={showAddModal}
         onOpenChange={setShowAddModal}
+        addItem={addItem}
+        addGroup={addGroup}
       />
     </div>
   );

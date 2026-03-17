@@ -3,9 +3,12 @@
 import { StarItem } from "@/lib/types";
 import { ExternalLink, Star } from "lucide-react";
 
-export function StarItemRow({ item }: { item: StarItem }) {
-  const isMobile = window.innerWidth < 768;
-  const linkLimit = isMobile ? 2 : 5;
+interface StarItemRowProps {
+  item: StarItem;
+}
+
+export function StarItemRow({ item }: StarItemRowProps) {
+  const linkLimit = 3;
 
   return (
     <div key={item.id} className="flex flex-col items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent border border-border bg-card cursor-pointer transition-all group">

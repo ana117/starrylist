@@ -2,13 +2,82 @@
 
 import { Dot, Trash, X } from "lucide-react";
 import { Button } from "./ui/button";
+import { useState } from "react";
+import { Link, StarGroup, StarItem } from "@/lib/types";
 
 interface AddItemModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  addItem: (newItem: StarItem, index?: number) => string;
+  addGroup: (groupStr: string, parentId?: string) => string | undefined;
 }
 
-export function AddItemModal({ open, onOpenChange }: AddItemModalProps) {
+export function AddItemModal({ open, onOpenChange, addItem, addGroup }: AddItemModalProps) {
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState<number | ''>('');
+  const [group, setGroup] = useState('');
+  const [priority, setPriority] = useState(3);
+  const [notes, setNotes] = useState('');
+  const [linkInputs, setLinkInputs] = useState<Link[]>([{ url: '', label: '' }]);
+
+  function handleLinkChange(index: number, field: keyof Link, value: string): void {
+    setLinkInputs((prev) =>
+      prev.map((link, i) => (i === index ? { ...link, [field]: value } : link))
+    );
+  }
+
+  function parseGroup(groupStr: string): string | undefined {
+    const parts = groupStr.split('>').map(part => part.trim()).filter(part => part !== '');
+    if (parts.length === 0) return undefined;
+
+    let parentId: string | undefined;
+    let leafId: string | undefined;
+    parts.forEach((part, index) => {
+      leafId = addGroup(part, parentId);
+      parentId = leafId;
+    });
+
+    return leafId;
+  }
+
+  function handleClear() {
+    setName('');
+    setPrice('');
+    setGroup('');
+    setPriority(3);
+    setNotes('');
+    setLinkInputs([{ url: '', label: '' }]);
+  }
+
+  function handleSave() {
+    if (!name.trim()) {
+      alert('Name is required');
+      return;
+    }
+    if (priority < 1 || priority > 5) {
+      alert('Priority must be between 1 and 5');
+      return;
+    }
+    const validLinks = linkInputs.filter(link => link.url.trim() !== '');
+    const groupId = parseGroup(group);
+
+    const newItem: StarItem = {
+      id: crypto.randomUUID(),
+      name,
+      groupId,
+      price: typeof price === 'number' ? price : 0,
+      notes,
+      links: validLinks,
+      priority,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    addItem(newItem);
+
+    handleClear();
+    onOpenChange(false);
+  }
+
   return (
     <div>
       {open && (
@@ -21,20 +90,20 @@ export function AddItemModal({ open, onOpenChange }: AddItemModalProps) {
               </Button>
             </div>
 
-            <div className="space-y-4 overflow-y-auto max-h-[80vh] px-2">
+            <form className="space-y-4 overflow-y-auto max-h-[80vh] px-6">
               <div>
                 <label htmlFor="item-name" className="block text-sm font-medium mb-1 text-muted-foreground">Name</label>
-                <input id="item-name" type="text" placeholder="Standing Desk" required className="border border-border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-ring" />
+                <input id="item-name" type="text" placeholder="Standing Desk" required className="border border-border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-ring" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
 
               <div>
                 <label htmlFor="item-price" className="block text-sm font-medium mb-1 text-muted-foreground">Price</label>
-                <input id="item-price" type="number" placeholder="10.000" min={0} required className="border border-border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-ring" />
+                <input id="item-price" type="number" placeholder="10.000" min={0} required className="border border-border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-ring" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
               </div>
 
               <div>
                 <label htmlFor="item-group" className="block text-sm font-medium mb-1 text-muted-foreground">Group</label>
-                <input id="item-group" type="text" placeholder="Group A &gt; Group B" className="border border-border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-ring" />
+                <input id="item-group" type="text" placeholder="Group A &gt; Group B" className="border border-border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-ring" value={group} onChange={(e) => setGroup(e.target.value)} />
                 <p className="text-xs text-muted-foreground mt-1 italic">Use &gt; to indicate subgroup (e.g. &quot;Group A &gt; Group B&quot;).</p>
               </div>
 
@@ -42,7 +111,7 @@ export function AddItemModal({ open, onOpenChange }: AddItemModalProps) {
                 <label htmlFor="item-priority" className="block text-sm font-medium mb-1 text-muted-foreground">Priority</label>
                 <div className="flex items-center gap-4">
                   <span>1</span>
-                  <input id="item-priority" type="range" min="1" max="5" list="markers" className="w-full accent-foreground focus:outline-none" />
+                  <input id="item-priority" type="range" min="1" max="5" list="markers" className="w-full accent-foreground focus:outline-none" value={priority} onChange={(e) => setPriority(Number(e.target.value))} />
                   <span>5</span>
                 </div>
                 <datalist id="markers">
@@ -57,23 +126,19 @@ export function AddItemModal({ open, onOpenChange }: AddItemModalProps) {
               <div>
                 <label htmlFor="item-links" className="block text-sm font-medium mb-1 text-muted-foreground">Links</label>
                 <div id="item-links" className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Dot className="w-4 h-4 text-muted-foreground" strokeWidth={4} />
-                    <input type="url" placeholder="https://example.com/" className="border border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring grow" />
-                    <input type="text" placeholder="Optional label" className="border border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring" />
-                    <Button variant="destructive" size="icon" className="w-10 h-10 p-2">
-                      <Trash className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Dot className="w-4 h-4 text-muted-foreground" strokeWidth={4} />
-                    <input type="url" placeholder="https://example.com/" className="border border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring grow" />
-                    <input type="text" placeholder="Optional label" className="border border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring" />
-                    <Button variant="destructive" size="icon" className="w-10 h-10 p-2">
-                      <Trash className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <Button variant="outline" size="sm">
+                  {linkInputs.map((link, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Dot className="w-4 h-4 text-muted-foreground" strokeWidth={4} />
+                      <input type="url" placeholder="https://example.com/" className="border border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring grow" value={link.url} onChange={(e) => handleLinkChange(index, 'url', e.target.value)} />
+                      <input type="text" placeholder="Optional label" className="border border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring" value={link.label} onChange={(e) => handleLinkChange(index, 'label', e.target.value)} />
+                      {linkInputs.length > 1 && (
+                        <Button variant="destructive" size="icon" className="w-10 h-10 p-2" onClick={() => setLinkInputs(linkInputs.filter((_, i) => i !== index))}>
+                          <Trash className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button variant="outline" size="sm" onClick={() => setLinkInputs([...linkInputs, { url: '', label: '' }])}>
                     Add Link
                   </Button>
                 </div>
@@ -81,17 +146,24 @@ export function AddItemModal({ open, onOpenChange }: AddItemModalProps) {
 
               <div>
                 <label htmlFor="item-notes" className="block text-sm font-medium mb-1 text-muted-foreground">Notes</label>
-                <textarea id="item-notes" placeholder="Steel legs, 60-120 cm adjustable height" rows={4} className="border border-border rounded-lg p-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-ring"></textarea>
+                <textarea id="item-notes" placeholder="Steel legs, 60-120 cm adjustable height" rows={4} className="border border-border rounded-lg p-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-ring" value={notes} onChange={(e) => setNotes(e.target.value)} />
               </div>
-            </div>
+            </form>
 
-            <div className="sticky bottom-0 bg-background p-2 border-t border-border flex justify-end gap-4">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button>
-                Save Item
-              </Button>
+            <div className="sticky bottom-0 bg-background p-2 border-t border-border flex justify-between gap-4">
+              <div>
+                <Button variant="secondary" onClick={handleClear}>
+                  Clear
+                </Button>
+              </div>
+              <div className="flex justify-end items-center gap-4">
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSave}>
+                  Save Item
+                </Button>
+              </div>
             </div>
           </div>
         </div>

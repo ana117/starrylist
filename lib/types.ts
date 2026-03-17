@@ -9,7 +9,7 @@ export interface StarItem {
   price: number;
   links: Link[];
   notes?: string;
-  priority: 1 | 2 | 3 | 4 | 5;
+  priority: number;
   groupId?: string;
   createdAt: Date;
   updatedAt: Date;
