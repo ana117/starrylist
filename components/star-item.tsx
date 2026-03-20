@@ -30,7 +30,7 @@ export function StarItemRow({ item, handleClick }: StarItemRowProps) {
       </div>
 
       <div className="flex justify-between gap-2 w-full">
-        <div className="flex flex-col items-left gap-2">
+        <div className="flex flex-col items-left gap-2 text-left">
           {item.notes && (
             <span className="text-xs text-muted-foreground whitespace-pre-wrap">
               {item.notes}
