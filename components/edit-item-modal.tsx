@@ -75,8 +75,8 @@ export function EditItemModal({ open, item, index, onOpenChange, addItem, delete
   return (
     <div>
       {open && (
-        <div className="fixed inset-0 bg-card/50 backdrop-blur-xs flex items-center justify-center z-50">
-          <div className="space-y-8 bg-background rounded-lg px-4 py-2 w-full max-w-2xl border border-border">
+        <div className="fixed inset-0 bg-card/50 backdrop-blur-xs flex items-center justify-center z-50" onClick={() => onOpenChange(false)}>
+          <div className="space-y-8 bg-background rounded-lg px-4 py-2 w-full max-w-2xl border border-border" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center p-2 mb-2">
               <h2 className="font-semibold text-lg">Edit Item</h2>
               <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="w-10 h-10 p-2">
