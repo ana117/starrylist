@@ -9,9 +9,10 @@ interface StarGroupProps {
   group: StarGroup;
   items: StarItem[];
   subgroups: StarGroup[];
+  handleItemClick: (item: StarItem) => void;
 }
 
-export function StarGroupList({ group, items, subgroups }: StarGroupProps) {
+export function StarGroupList({ group, items, subgroups, handleItemClick }: StarGroupProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (items.length === 0) {
@@ -52,7 +53,7 @@ export function StarGroupList({ group, items, subgroups }: StarGroupProps) {
       {isOpen && (
         <div className="ml-4 space-y-2">
           {items.filter(item => item.groupId === group.id).map((item) => (
-            <StarItemRow key={item.id} item={item} />
+            <StarItemRow key={item.id} item={item} handleClick={handleItemClick} />
           ))}
 
           {subgroups.map((subgroup) => (
@@ -61,6 +62,7 @@ export function StarGroupList({ group, items, subgroups }: StarGroupProps) {
               group={subgroup}
               items={items.filter(item => item.groupId === subgroup.id)}
               subgroups={subgroups.filter(g => g.parentId === subgroup.id)}
+              handleItemClick={handleItemClick}
             />
           ))}
         </div>

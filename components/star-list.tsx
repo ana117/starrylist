@@ -8,12 +8,27 @@ import { StarGroup, StarItem } from '@/lib/types';
 import { StarItemRow } from '@/components/star-item';
 import { useEffect, useState } from 'react';
 import { AddItemModal } from './add-item-modal';
+import { EditItemModal } from './edit-item-modal';
 
 
 export function StarList() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [items, setItems] = useState<StarItem[]>([]);
   const [groups, setGroups] = useState<StarGroup[]>([]);
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<StarItem>({
+    id: '',
+    name: '',
+    groupId: '',
+    price: 0,
+    notes: '',
+    links: [],
+    priority: 3,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+  const [selectedIndex, setSelectedIndex] = useState(-1);
 
   useEffect(() => {
     const storedItems = localStorage.getItem('starItems');
@@ -25,24 +40,27 @@ export function StarList() {
     if (storedGroups) {
       setGroups(JSON.parse(storedGroups));
     }
-
-    console.log('Loaded items:', storedItems ? JSON.parse(storedItems) : []);
-    console.log('Loaded groups:', storedGroups ? JSON.parse(storedGroups) : []);
   }, []);
 
-  function addItem(newItem: StarItem, index?: number): string {
-    if (index !== undefined) {
-      const updatedItems = [...items];
-      updatedItems.splice(index, 0, newItem);
-      localStorage.setItem('starItems', JSON.stringify(updatedItems));
+  function addItem(newItem: StarItem): string {
+    const index = items.findIndex((i) => i.id === newItem.id);
+    if (index !== -1) {
+      items[index] = newItem;
+      localStorage.setItem('starItems', JSON.stringify(items));
       return newItem.id;
     }
     localStorage.setItem('starItems', JSON.stringify([...items, newItem]));
     setItems((prev) => [...prev, newItem]);
     return newItem.id;
   }
+
+  function deleteItem(itemId: string): void {
+    const updatedItems = items.filter((i) => i.id !== itemId);
+    localStorage.setItem('starItems', JSON.stringify(updatedItems));
+    setItems(updatedItems);
+  }
+
   function addGroup(groupName: string): string | undefined {
-    console.log('Adding group:', groupName);
     const parts = groupName.split('>').map(part => part.trim()).filter(part => part !== '');
     if (parts.length === 0) return undefined;
     
@@ -69,6 +87,15 @@ export function StarList() {
     localStorage.setItem('starGroups', JSON.stringify([...groups, ...newGroups]));
     setGroups((prev) => [...prev, ...newGroups]);
     return leafId;
+  }
+
+  function handleItemClick(item: StarItem) {
+    const index = items.findIndex((i) => i.id === item.id);
+    if (index !== -1) {
+      setSelectedItem(item);
+      setSelectedIndex(index);
+      setShowEditModal(true);
+    }
   }
 
   const groupedItems = new Map<string, StarItem[]>();
@@ -142,7 +169,7 @@ export function StarList() {
               </div>
               <div className="ml-4 space-y-2">
                 {rootItems.map((item) => (
-                  <StarItemRow key={item.id} item={item} />
+                  <StarItemRow key={item.id} item={item} handleClick={handleItemClick} />
                 ))}
               </div>
             </div>
@@ -154,6 +181,7 @@ export function StarList() {
               group={group}
               items={groupedItems.get(group.id) || []}
               subgroups={groups.filter((g) => g.parentId === group.id)}
+              handleItemClick={handleItemClick}
             />
           ))}
         </div>
@@ -163,6 +191,16 @@ export function StarList() {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         addItem={addItem}
+        addGroup={addGroup}
+      />
+
+      <EditItemModal
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        item={selectedItem}
+        index={selectedIndex}
+        addItem={addItem}
+        deleteItem={deleteItem}
         addGroup={addGroup}
       />
     </div>

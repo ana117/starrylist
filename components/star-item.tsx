@@ -5,13 +5,14 @@ import { ExternalLink, Star } from "lucide-react";
 
 interface StarItemRowProps {
   item: StarItem;
+  handleClick: (item: StarItem) => void;
 }
 
-export function StarItemRow({ item }: StarItemRowProps) {
+export function StarItemRow({ item, handleClick }: StarItemRowProps) {
   const linkLimit = 3;
 
   return (
-    <div key={item.id} className="flex flex-col items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent border border-border bg-card cursor-pointer transition-all group">
+    <button key={item.id} className="w-full flex flex-col items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent border border-border bg-card cursor-pointer transition-all group" onClick={() => handleClick(item)}>
       <div className="flex justify-between w-full">
         <span>{item.name}</span>
         <span className="flex items-center gap-1">
@@ -72,6 +73,6 @@ export function StarItemRow({ item }: StarItemRowProps) {
           )}
         </div>
       )}
-    </div>
+    </button>
   );
 }
