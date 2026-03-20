@@ -26,20 +26,6 @@ export function AddItemModal({ open, onOpenChange, addItem, addGroup }: AddItemM
     );
   }
 
-  function parseGroup(groupStr: string): string | undefined {
-    const parts = groupStr.split('>').map(part => part.trim()).filter(part => part !== '');
-    if (parts.length === 0) return undefined;
-
-    let parentId: string | undefined;
-    let leafId: string | undefined;
-    parts.forEach((part, index) => {
-      leafId = addGroup(part, parentId);
-      parentId = leafId;
-    });
-
-    return leafId;
-  }
-
   function handleClear() {
     setName('');
     setPrice('');
@@ -59,7 +45,7 @@ export function AddItemModal({ open, onOpenChange, addItem, addGroup }: AddItemM
       return;
     }
     const validLinks = linkInputs.filter(link => link.url.trim() !== '');
-    const groupId = parseGroup(group);
+    const groupId = addGroup(group);
 
     const newItem: StarItem = {
       id: crypto.randomUUID(),

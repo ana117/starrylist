@@ -6,35 +6,29 @@ import { ModeToggle } from '@/components/mode-toggle';
 import { StarGroupList } from '@/components/star-group';
 import { StarGroup, StarItem } from '@/lib/types';
 import { StarItemRow } from '@/components/star-item';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AddItemModal } from './add-item-modal';
 
 
 export function StarList() {
   const [showAddModal, setShowAddModal] = useState(false);
-  
-  const items: StarItem[] = [];
-  const groups: StarGroup[] = [];
+  const [items, setItems] = useState<StarItem[]>([]);
+  const [groups, setGroups] = useState<StarGroup[]>([]);
 
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
     const storedItems = localStorage.getItem('starItems');
     const storedGroups = localStorage.getItem('starGroups');
 
     if (storedItems) {
-      JSON.parse(storedItems).forEach((item: any) => {
-        items.push({
-          ...item,
-        });
-      });
+      setItems(JSON.parse(storedItems));
     }
     if (storedGroups) {
-      JSON.parse(storedGroups).forEach((group: any) => {
-        groups.push({
-          ...group,
-        });
-      });
+      setGroups(JSON.parse(storedGroups));
     }
-  }
+
+    console.log('Loaded items:', storedItems ? JSON.parse(storedItems) : []);
+    console.log('Loaded groups:', storedGroups ? JSON.parse(storedGroups) : []);
+  }, []);
 
   function addItem(newItem: StarItem, index?: number): string {
     if (index !== undefined) {
@@ -43,24 +37,38 @@ export function StarList() {
       localStorage.setItem('starItems', JSON.stringify(updatedItems));
       return newItem.id;
     }
-    const updatedItems = [...items, newItem];
-    localStorage.setItem('starItems', JSON.stringify(updatedItems));
+    localStorage.setItem('starItems', JSON.stringify([...items, newItem]));
+    setItems((prev) => [...prev, newItem]);
     return newItem.id;
   }
-  function addGroup(groupName: string, parentId?: string): string | undefined {
-    if (groups.some((g) => g.name === groupName)) {
-      return groups.find((g) => g.name === groupName)?.id;
-    }
-    const newGroup: StarGroup = {
-      id: crypto.randomUUID(),
-      name: groupName,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      parentId,
-    };
-    const updatedGroups = [...groups, newGroup];
-    localStorage.setItem('starGroups', JSON.stringify(updatedGroups));
-    return newGroup.id;
+  function addGroup(groupName: string): string | undefined {
+    console.log('Adding group:', groupName);
+    const parts = groupName.split('>').map(part => part.trim()).filter(part => part !== '');
+    if (parts.length === 0) return undefined;
+    
+    let parentId: string | undefined;
+    let leafId: string | undefined;
+    let newGroups: StarGroup[] = [];
+    parts.forEach((part, index) => {
+      const existingGroup = groups.find((g) => g.name === part && g.parentId === parentId);
+      if (existingGroup) {
+        leafId = existingGroup.id;
+      } else {
+        const newGroup: StarGroup = {
+          id: crypto.randomUUID(),
+          name: part,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          parentId,
+        };
+        newGroups.push(newGroup);
+        leafId = newGroup.id;
+      }
+      parentId = leafId;
+    });
+    localStorage.setItem('starGroups', JSON.stringify([...groups, ...newGroups]));
+    setGroups((prev) => [...prev, ...newGroups]);
+    return leafId;
   }
 
   const groupedItems = new Map<string, StarItem[]>();
