@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { AddItemModal } from './add-item-modal';
 import { EditItemModal } from './edit-item-modal';
 import { RawDataModal } from './raw-data-modal';
+import { DropdownMenu } from './dropdown-menu';
 
 
 export function StarList() {
@@ -109,6 +110,13 @@ export function StarList() {
     }
   }
 
+  function setData(newItems: StarItem[], newGroups: StarGroup[]) {
+    localStorage.setItem('starItems', JSON.stringify(newItems));
+    localStorage.setItem('starGroups', JSON.stringify(newGroups));
+    setItems(newItems);
+    setGroups(newGroups);
+  }
+
   const groupedItems = new Map<string, StarItem[]>();
   items.forEach((item) => {
     let currentGroupId = item.groupId;
@@ -151,10 +159,13 @@ export function StarList() {
             <Plus className="w-4 h-4 mr-2" />
             Add Item
           </Button>
-          <Button variant="outline" onClick={() => setShowRawDataModal(true)}>
-            <FileText className="w-4 h-4 mr-2" />
-            Raw Data
-          </Button>
+          
+          <DropdownMenu nodes={[
+            <Button variant="ghost" onClick={() => setShowRawDataModal(true)} className="w-full text-left flex justify-start">
+              <FileText className="w-4 h-4 mr-2" />
+              Raw Data
+            </Button>
+          ]} />
         </div>
 
         <div className="space-y-5">
@@ -225,6 +236,7 @@ export function StarList() {
         groups={groups}
         onOpenChange={setShowRawDataModal}
         resetData={resetData}
+        setData={setData}
       />
     </div>
   );
