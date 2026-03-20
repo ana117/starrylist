@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, Star } from 'lucide-react';
+import { FileText, Plus, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
 import { StarGroupList } from '@/components/star-group';
@@ -9,12 +9,14 @@ import { StarItemRow } from '@/components/star-item';
 import { useEffect, useState } from 'react';
 import { AddItemModal } from './add-item-modal';
 import { EditItemModal } from './edit-item-modal';
+import { RawDataModal } from './raw-data-modal';
 
 
 export function StarList() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [items, setItems] = useState<StarItem[]>([]);
   const [groups, setGroups] = useState<StarGroup[]>([]);
+  const [showRawDataModal, setShowRawDataModal] = useState(false);
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<StarItem>({
@@ -98,6 +100,15 @@ export function StarList() {
     }
   }
 
+  function resetData() {
+    if (confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
+      localStorage.removeItem('starItems');
+      localStorage.removeItem('starGroups');
+      setItems([]);
+      setGroups([]);
+    }
+  }
+
   const groupedItems = new Map<string, StarItem[]>();
   items.forEach((item) => {
     let currentGroupId = item.groupId;
@@ -135,10 +146,14 @@ export function StarList() {
           <ModeToggle />
         </div>
 
-        <div className="flex gap-3 mb-6 flex-wrap items-center">
+        <div className="flex justify-between gap-3 mb-6 flex-wrap items-center">
           <Button onClick={() => setShowAddModal(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Item
+          </Button>
+          <Button variant="outline" onClick={() => setShowRawDataModal(true)}>
+            <FileText className="w-4 h-4 mr-2" />
+            Raw Data
           </Button>
         </div>
 
@@ -202,6 +217,14 @@ export function StarList() {
         addItem={addItem}
         deleteItem={deleteItem}
         addGroup={addGroup}
+      />
+
+      <RawDataModal
+        open={showRawDataModal}
+        items={items}
+        groups={groups}
+        onOpenChange={setShowRawDataModal}
+        resetData={resetData}
       />
     </div>
   );
