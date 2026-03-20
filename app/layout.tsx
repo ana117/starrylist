@@ -20,6 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={geistSans.className}>
+      <head>
+        <meta name="apple-mobile-web-app-title" content="StarryList" />
+      </head>
       <body
         className={`font-sans antialiased`}
       >
