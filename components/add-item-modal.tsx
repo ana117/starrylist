@@ -18,9 +18,9 @@ export function AddItemModal({ open, onOpenChange, addItem, addGroup }: AddItemM
   const [group, setGroup] = useState('');
   const [priority, setPriority] = useState(3);
   const [notes, setNotes] = useState('');
-  const [linkInputs, setLinkInputs] = useState<Link[]>([{ url: '', label: '' }]);
+  const [linkInputs, setLinkInputs] = useState<Link[]>([{ url: '', label: '', price: undefined }]);
 
-  function handleLinkChange(index: number, field: keyof Link, value: string): void {
+  function handleLinkChange(index: number, field: keyof Link, value: string | number | undefined): void {
     setLinkInputs((prev) =>
       prev.map((link, i) => (i === index ? { ...link, [field]: value } : link))
     );
@@ -111,17 +111,24 @@ export function AddItemModal({ open, onOpenChange, addItem, addGroup }: AddItemM
 
               <div>
                 <label htmlFor="item-links" className="block text-sm font-medium mb-1 text-muted-foreground">Links</label>
-                <div id="item-links" className="space-y-2">
+                <div id="item-links" className="space-y-4">
                   {linkInputs.map((link, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Dot className="w-4 h-4 text-muted-foreground" strokeWidth={4} />
-                      <input type="url" placeholder="https://example.com/" className="border border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring grow" value={link.url} onChange={(e) => handleLinkChange(index, 'url', e.target.value)} />
-                      <input type="text" placeholder="Optional label" className="border border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring" value={link.label} onChange={(e) => handleLinkChange(index, 'label', e.target.value)} />
-                      {linkInputs.length > 1 && (
-                        <Button variant="destructive" size="icon" className="w-10 h-10 p-2" onClick={() => setLinkInputs(linkInputs.filter((_, i) => i !== index))}>
-                          <Trash className="w-4 h-4" />
-                        </Button>
-                      )}
+                      <div className="flex flex-col w-full gap-2 border border-border rounded-lg p-2">
+                        <div className="flex items-center gap-2">
+                          <input type="url" placeholder="https://example.com/" className="border-b-2 border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring grow" value={link.url} onChange={(e) => handleLinkChange(index, 'url', e.target.value)} />
+                          {linkInputs.length > 1 && (
+                            <Button variant="destructive" size="icon" className="w-10 h-10 p-2" onClick={() => setLinkInputs(linkInputs.filter((_, i) => i !== index))}>
+                              <Trash className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <input type="text" placeholder="Optional label" className="border-b-2 border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring grow" value={link.label} onChange={(e) => handleLinkChange(index, 'label', e.target.value)} />
+                          <input type="number" placeholder="Optional price" className="border-b-2 border-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-ring grow" value={link.price || ''} onChange={(e) => handleLinkChange(index, 'price', Number(e.target.value))} />
+                        </div>
+                      </div>
                     </div>
                   ))}
                   <Button variant="outline" size="sm" onClick={() => setLinkInputs([...linkInputs, { url: '', label: '' }])}>

@@ -1,6 +1,7 @@
 export interface Link {
   url: string;
   label?: string;
+  price?: number;
 }
 
 export interface StarItem {
