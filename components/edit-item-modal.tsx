@@ -58,7 +58,7 @@ export function EditItemModal({ open, item, index, onOpenChange, addItem, delete
       notes,
       links: validLinks,
       priority,
-      createdAt: new Date(),
+      createdAt: item.createdAt,
       updatedAt: new Date(),
     };
     addItem(newItem);

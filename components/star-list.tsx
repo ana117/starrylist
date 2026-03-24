@@ -45,6 +45,14 @@ export function StarList() {
     }
   }, []);
 
+  function generateId(existingIds: Set<string>): string {
+    let newId: string;
+    do {
+      newId = crypto.randomUUID();
+    } while (existingIds.has(newId));
+    return newId;
+  }
+
   function addItem(newItem: StarItem): string {
     const index = items.findIndex((i) => i.id === newItem.id);
     if (index !== -1) {
@@ -52,6 +60,7 @@ export function StarList() {
       localStorage.setItem('starItems', JSON.stringify(items));
       return newItem.id;
     }
+    newItem.id = generateId(new Set(items.map(i => i.id)));
     localStorage.setItem('starItems', JSON.stringify([...items, newItem]));
     setItems((prev) => [...prev, newItem]);
     return newItem.id;
@@ -76,7 +85,7 @@ export function StarList() {
         leafId = existingGroup.id;
       } else {
         const newGroup: StarGroup = {
-          id: crypto.randomUUID(),
+          id: generateId(new Set(groups.map(g => g.id))),
           name: part,
           createdAt: new Date(),
           updatedAt: new Date(),
