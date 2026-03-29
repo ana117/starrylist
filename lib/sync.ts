@@ -7,7 +7,25 @@ export interface SyncPayload {
 
 interface PushResult {
   requiresOverwriteConfirmation: boolean;
+  updatedAt: string | null;
 }
+
+interface PullResult {
+  payload: SyncPayload;
+  updatedAt: string | null;
+}
+
+interface SyncStatusResult {
+  exists: boolean;
+  updatedAt: string | null;
+}
+
+export interface StoredSyncMeta {
+  id: string;
+  lastUpdatedAt: string | null;
+}
+
+const SYNC_META_STORAGE_KEY = 'starSyncMeta';
 
 function getEnv(name: string): string {
   const envMap: Record<string, string | undefined> = {
@@ -51,6 +69,62 @@ async function requestJson<T>(url: string, payload: object): Promise<T> {
   return (json?.data as T) ?? (json as T);
 }
 
+function saveSyncMeta(meta: StoredSyncMeta): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(SYNC_META_STORAGE_KEY, JSON.stringify(meta));
+}
+
+export function getStoredSyncMeta(): StoredSyncMeta | null {
+  if (typeof window === 'undefined') return null;
+
+  const raw = localStorage.getItem(SYNC_META_STORAGE_KEY);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<StoredSyncMeta>;
+    if (typeof parsed.id !== 'string' || !parsed.id) {
+      return null;
+    }
+
+    return {
+      id: parsed.id,
+      lastUpdatedAt: typeof parsed.lastUpdatedAt === 'string' ? parsed.lastUpdatedAt : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function toTimestamp(value: string | null): number {
+  if (!value) return 0;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+export async function checkRemoteSyncFreshness(): Promise<{
+  hasNewer: boolean;
+  remoteUpdatedAt: string | null;
+}> {
+  const meta = getStoredSyncMeta();
+  if (!meta) {
+    return { hasNewer: false, remoteUpdatedAt: null };
+  }
+
+  const status = await requestJson<SyncStatusResult>('/api/sync/status', {
+    id: meta.id,
+  });
+
+  if (!status.exists) {
+    return { hasNewer: false, remoteUpdatedAt: null };
+  }
+
+  const hasNewer = toTimestamp(status.updatedAt) > toTimestamp(meta.lastUpdatedAt);
+  return {
+    hasNewer,
+    remoteUpdatedAt: status.updatedAt,
+  };
+}
+
 export async function deriveSyncId(password: string): Promise<string> {
   if (!password.trim()) {
     throw new Error('Password is required');
@@ -70,15 +144,31 @@ export async function pushDataToSupabase(
 ): Promise<PushResult> {
   const id = await deriveSyncId(password);
 
-  return requestJson<PushResult>('/api/sync/push', {
+  const result = await requestJson<PushResult>('/api/sync/push', {
     id,
     payload,
     allowOverwrite,
   });
+
+  if (!result.requiresOverwriteConfirmation) {
+    saveSyncMeta({
+      id,
+      lastUpdatedAt: result.updatedAt,
+    });
+  }
+
+  return result;
 }
 
 export async function pullDataFromSupabase(password: string): Promise<SyncPayload> {
   const id = await deriveSyncId(password);
 
-  return requestJson<SyncPayload>('/api/sync/pull', { id });
+  const result = await requestJson<PullResult>('/api/sync/pull', { id });
+
+  saveSyncMeta({
+    id,
+    lastUpdatedAt: result.updatedAt,
+  });
+
+  return result.payload;
 }

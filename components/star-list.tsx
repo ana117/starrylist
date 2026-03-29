@@ -6,12 +6,13 @@ import { ModeToggle } from '@/components/mode-toggle';
 import { StarGroupList } from '@/components/star-group';
 import { StarGroup, StarItem } from '@/lib/types';
 import { StarItemRow } from '@/components/star-item';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AddItemModal } from './add-item-modal';
 import { EditItemModal } from './edit-item-modal';
 import { RawDataModal } from './raw-data-modal';
 import { DropdownMenu } from './dropdown-menu';
 import { SyncModal } from './sync-modal';
+import { checkRemoteSyncFreshness } from '@/lib/sync';
 
 
 export function StarList() {
@@ -34,6 +35,9 @@ export function StarList() {
   });
   const [showRawDataModal, setShowRawDataModal] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
+  const [hasNewCloudVersion, setHasNewCloudVersion] = useState(false);
+  const [cloudUpdatedAt, setCloudUpdatedAt] = useState<string | null>(null);
+  const [showCloudToast, setShowCloudToast] = useState(false);
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<StarItem>({
@@ -47,6 +51,31 @@ export function StarList() {
     createdAt: new Date(),
     updatedAt: new Date(),
   });
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    checkRemoteSyncFreshness()
+      .then((result) => {
+        if (isCancelled) return;
+        setHasNewCloudVersion(result.hasNewer);
+        setCloudUpdatedAt(result.remoteUpdatedAt);
+        setShowCloudToast(result.hasNewer);
+      })
+      .catch(() => {
+        if (isCancelled) return;
+        setHasNewCloudVersion(false);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  function handleSyncSuccess() {
+    setHasNewCloudVersion(false);
+    setShowCloudToast(false);
+  }
 
   function generateId(existingIds: Set<string>): string {
     let newId: string;
@@ -175,6 +204,11 @@ export function StarList() {
             <Button key="sync" variant="outline" onClick={() => setShowSyncModal(true)}>
               <CloudSync className="w-4 h-4 mr-2" />
               Sync
+              {hasNewCloudVersion && (
+                <span className="ml-2 rounded-full bg-chart-5/20 text-chart-5 dark:text-chart-1 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                  New
+                </span>
+              )}
             </Button>
             <DropdownMenu nodes={[
               <Button key="raw-data" variant="ghost" onClick={() => setShowRawDataModal(true)} className="w-full text-left flex justify-start">
@@ -261,7 +295,24 @@ export function StarList() {
         items={items}
         groups={groups}
         setData={setData}
+        onSyncSuccess={handleSyncSuccess}
       />
+
+      {showCloudToast && hasNewCloudVersion && (
+        <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-chart-5/30 bg-background shadow-lg px-4 py-3 text-sm max-w-xs">
+          <div className="font-semibold text-chart-5 dark:text-chart-1">New cloud version available</div>
+          <div className="text-muted-foreground mt-1">
+            {cloudUpdatedAt
+              ? `Updated ${new Date(cloudUpdatedAt).toLocaleString()}`
+              : 'A newer synced version is available.'}
+          </div>
+          <div className="mt-2 flex justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setShowCloudToast(false)}>
+              Dismiss
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

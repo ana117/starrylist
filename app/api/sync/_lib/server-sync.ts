@@ -16,8 +16,23 @@ interface PullInput {
   id: string;
 }
 
+interface StatusInput {
+  id: string;
+}
+
 interface PushResult {
   requiresOverwriteConfirmation: boolean;
+  updatedAt: string | null;
+}
+
+interface PullResult {
+  payload: SyncPayload;
+  updatedAt: string | null;
+}
+
+interface StatusResult {
+  exists: boolean;
+  updatedAt: string | null;
 }
 
 function getRequiredEnv(name: string): string {
@@ -84,6 +99,15 @@ export function parsePullInput(body: unknown): PullInput {
   return { id: b.id };
 }
 
+export function parseStatusInput(body: unknown): StatusInput {
+  const b = body as Partial<StatusInput>;
+  if (typeof b?.id !== 'string' || !b.id.trim()) {
+    throw new Error('Invalid status payload: id is required');
+  }
+
+  return { id: b.id };
+}
+
 export async function handlePushSync(input: PushInput): Promise<PushResult> {
   const supabase = getSupabaseServerClient();
   const table = getSyncTableName();
@@ -100,28 +124,46 @@ export async function handlePushSync(input: PushInput): Promise<PushResult> {
     }
 
     if (existingRow) {
-      return { requiresOverwriteConfirmation: true };
+      const { data: currentRow, error: currentRowError } = await supabase
+        .from(table)
+        .select('updated_at')
+        .eq('id', input.id)
+        .maybeSingle();
+
+      if (currentRowError) {
+        throw new Error(currentRowError.message);
+      }
+
+      return {
+        requiresOverwriteConfirmation: true,
+        updatedAt: (currentRow?.updated_at as string | undefined) ?? null,
+      };
     }
   }
 
-  const { error: upsertError } = await supabase
+  const { data: upsertRow, error: upsertError } = await supabase
     .from(table)
-    .upsert({ id: input.id, data: input.payload }, { onConflict: 'id' });
+    .upsert({ id: input.id, data: input.payload }, { onConflict: 'id' })
+    .select('updated_at')
+    .single();
 
   if (upsertError) {
     throw new Error(upsertError.message);
   }
 
-  return { requiresOverwriteConfirmation: false };
+  return {
+    requiresOverwriteConfirmation: false,
+    updatedAt: (upsertRow?.updated_at as string | undefined) ?? null,
+  };
 }
 
-export async function handlePullSync(input: PullInput): Promise<SyncPayload> {
+export async function handlePullSync(input: PullInput): Promise<PullResult> {
   const supabase = getSupabaseServerClient();
   const table = getSyncTableName();
 
   const { data, error } = await supabase
     .from(table)
-    .select('data')
+    .select('data, updated_at')
     .eq('id', input.id)
     .maybeSingle();
 
@@ -137,5 +179,35 @@ export async function handlePullSync(input: PullInput): Promise<SyncPayload> {
   const items = Array.isArray(payload.items) ? payload.items : [];
   const groups = Array.isArray(payload.groups) ? payload.groups : [];
 
-  return { items, groups };
+  return {
+    payload: { items, groups },
+    updatedAt: (data.updated_at as string | undefined) ?? null,
+  };
+}
+
+export async function handleStatusSync(input: StatusInput): Promise<StatusResult> {
+  const supabase = getSupabaseServerClient();
+  const table = getSyncTableName();
+
+  const { data, error } = await supabase
+    .from(table)
+    .select('updated_at')
+    .eq('id', input.id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    return {
+      exists: false,
+      updatedAt: null,
+    };
+  }
+
+  return {
+    exists: true,
+    updatedAt: (data.updated_at as string | undefined) ?? null,
+  };
 }

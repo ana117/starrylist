@@ -5,9 +5,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const input = parsePullInput(body);
-    const payload = await handlePullSync(input);
+    const result = await handlePullSync(input);
 
-    return NextResponse.json({ data: payload });
+    return NextResponse.json({ data: result });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to pull sync data';
     const status = message.includes('No synced data found') ? 404 : 400;

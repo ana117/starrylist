@@ -12,11 +12,12 @@ interface SyncModalProps {
   items: StarItem[];
   groups: StarGroup[];
   setData: (newItems: StarItem[], newGroups: StarGroup[]) => void;
+  onSyncSuccess?: () => void;
 }
 
 type SyncAction = 'push' | 'pull' | null;
 
-export function SyncModal({ open, onOpenChange, items, groups, setData }: SyncModalProps) {
+export function SyncModal({ open, onOpenChange, items, groups, setData, onSyncSuccess }: SyncModalProps) {
   const [password, setPassword] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [activeAction, setActiveAction] = useState<SyncAction>(null);
@@ -50,6 +51,7 @@ export function SyncModal({ open, onOpenChange, items, groups, setData }: SyncMo
 
       setShowOverwriteWarning(false);
       setStatusMessage('Push successful. Your local data is now synced to cloud.');
+      onSyncSuccess?.();
     } catch (error) {
       setShowOverwriteWarning(false);
       setStatusMessage(error instanceof Error ? error.message : 'Failed to push data.');
@@ -90,6 +92,7 @@ export function SyncModal({ open, onOpenChange, items, groups, setData }: SyncMo
       const payload = await pullDataFromSupabase(password);
       setData(payload.items, payload.groups);
       setStatusMessage('Pull successful. Local data updated from cloud.');
+      onSyncSuccess?.();
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : 'Failed to pull data.');
     } finally {
