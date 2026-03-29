@@ -26,7 +26,6 @@ function getRequiredEnv(name: string): string {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
     SUPABASE_SYNC_TABLE: process.env.SUPABASE_SYNC_TABLE,
-    NEXT_PUBLIC_SUPABASE_SYNC_TABLE: process.env.NEXT_PUBLIC_SUPABASE_SYNC_TABLE,
   };
 
   const value = envMap[name];
@@ -49,7 +48,7 @@ function getSupabaseServerClient() {
 }
 
 function getSyncTableName(): string {
-  return process.env.SUPABASE_SYNC_TABLE || process.env.NEXT_PUBLIC_SUPABASE_SYNC_TABLE || 'starry_sync';
+  return getRequiredEnv('SUPABASE_SYNC_TABLE');
 }
 
 export function parsePushInput(body: unknown): PushInput {

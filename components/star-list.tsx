@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Plus, Star } from 'lucide-react';
+import { CloudSync, FileText, Plus, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
 import { StarGroupList } from '@/components/star-group';
@@ -171,15 +171,18 @@ export function StarList() {
             Add Item
           </Button>
           
-          <DropdownMenu nodes={[
-            <Button key="raw-data" variant="ghost" onClick={() => setShowRawDataModal(true)} className="w-full text-left flex justify-start">
-              <FileText className="w-4 h-4 mr-2" />
-              Raw Data
-            </Button>,
-            <Button key="sync" variant="ghost" onClick={() => setShowSyncModal(true)} className="w-full text-left flex justify-start">
+          <div className="flex gap-2">
+            <Button key="sync" variant="outline" onClick={() => setShowSyncModal(true)}>
+              <CloudSync className="w-4 h-4 mr-2" />
               Sync
             </Button>
-          ]} />
+            <DropdownMenu nodes={[
+              <Button key="raw-data" variant="ghost" onClick={() => setShowRawDataModal(true)} className="w-full text-left flex justify-start">
+                <FileText className="w-4 h-4 mr-2" />
+                Raw Data
+              </Button>
+            ]} />
+          </div>
         </div>
 
         <div className="space-y-5">

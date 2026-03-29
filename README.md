@@ -23,7 +23,7 @@ Create `.env.local` from `.env.example` and set values:
 - `SUPABASE_URL`
 - `SUPABASE_SECRET_KEY` (server only, **never** expose with `NEXT_PUBLIC_`)
 - `NEXT_PUBLIC_SYNC_HASH_KEY`
-- `SUPABASE_SYNC_TABLE` or `NEXT_PUBLIC_SUPABASE_SYNC_TABLE` (optional, defaults to `starry_sync`)
+- `SUPABASE_SYNC_TABLE`
 
 ### 2) Create the table in Supabase
 
