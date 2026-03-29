@@ -3,7 +3,7 @@
 import { Dot, Trash, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
-import { Link, StarGroup, StarItem } from "@/lib/types";
+import { Link, StarItem } from "@/lib/types";
 
 interface AddItemModalProps {
   open: boolean;

@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "./ui/button";
 import { X } from "lucide-react";
 import { StarGroup, StarItem } from "@/lib/types";
 
 interface RawDataModalProps {
   open: boolean;
-  items: any;
-  groups: any;
+  items: StarItem[];
+  groups: StarGroup[];
   onOpenChange: (open: boolean) => void;
   resetData: () => void;
   setData: (newItems: StarItem[], newGroups: StarGroup[]) => void;
@@ -37,11 +37,12 @@ export function RawDataModal({ open, items, groups, onOpenChange, resetData, set
       const jsonData = textarea.value;
       try {
         const parsedData = JSON.parse(jsonData);
-        const { items, groups } = parsedData;
-        setData(items, groups);
+        const parsedItems = Array.isArray(parsedData?.items) ? parsedData.items : [];
+        const parsedGroups = Array.isArray(parsedData?.groups) ? parsedData.groups : [];
+        setData(parsedItems, parsedGroups);
         onOpenChange(false);
         setShowImportInput(false);
-      } catch (error) {
+      } catch {
         alert("Invalid JSON data");
       }
     }

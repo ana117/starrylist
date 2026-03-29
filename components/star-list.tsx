@@ -6,18 +6,34 @@ import { ModeToggle } from '@/components/mode-toggle';
 import { StarGroupList } from '@/components/star-group';
 import { StarGroup, StarItem } from '@/lib/types';
 import { StarItemRow } from '@/components/star-item';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AddItemModal } from './add-item-modal';
 import { EditItemModal } from './edit-item-modal';
 import { RawDataModal } from './raw-data-modal';
 import { DropdownMenu } from './dropdown-menu';
+import { SyncModal } from './sync-modal';
 
 
 export function StarList() {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [items, setItems] = useState<StarItem[]>([]);
-  const [groups, setGroups] = useState<StarGroup[]>([]);
+  const [items, setItems] = useState<StarItem[]>(() => {
+    if (typeof window === 'undefined') {
+      return [];
+    }
+
+    const storedItems = localStorage.getItem('starItems');
+    return storedItems ? JSON.parse(storedItems) : [];
+  });
+  const [groups, setGroups] = useState<StarGroup[]>(() => {
+    if (typeof window === 'undefined') {
+      return [];
+    }
+
+    const storedGroups = localStorage.getItem('starGroups');
+    return storedGroups ? JSON.parse(storedGroups) : [];
+  });
   const [showRawDataModal, setShowRawDataModal] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<StarItem>({
@@ -31,19 +47,6 @@ export function StarList() {
     createdAt: new Date(),
     updatedAt: new Date(),
   });
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-
-  useEffect(() => {
-    const storedItems = localStorage.getItem('starItems');
-    const storedGroups = localStorage.getItem('starGroups');
-
-    if (storedItems) {
-      setItems(JSON.parse(storedItems));
-    }
-    if (storedGroups) {
-      setGroups(JSON.parse(storedGroups));
-    }
-  }, []);
 
   function generateId(existingIds: Set<string>): string {
     let newId: string;
@@ -54,10 +57,11 @@ export function StarList() {
   }
 
   function addItem(newItem: StarItem): string {
-    const index = items.findIndex((i) => i.id === newItem.id);
-    if (index !== -1) {
-      items[index] = newItem;
-      localStorage.setItem('starItems', JSON.stringify(items));
+    const existingIndex = items.findIndex((i) => i.id === newItem.id);
+    if (existingIndex !== -1) {
+      const updatedItems = items.map((item, idx) => (idx === existingIndex ? newItem : item));
+      localStorage.setItem('starItems', JSON.stringify(updatedItems));
+      setItems(updatedItems);
       return newItem.id;
     }
     newItem.id = generateId(new Set(items.map(i => i.id)));
@@ -78,8 +82,8 @@ export function StarList() {
     
     let parentId: string | undefined;
     let leafId: string | undefined;
-    let newGroups: StarGroup[] = [];
-    parts.forEach((part, index) => {
+    const newGroups: StarGroup[] = [];
+    parts.forEach((part) => {
       const existingGroup = groups.find((g) => g.name === part && g.parentId === parentId);
       if (existingGroup) {
         leafId = existingGroup.id;
@@ -102,10 +106,8 @@ export function StarList() {
   }
 
   function handleItemClick(item: StarItem) {
-    const index = items.findIndex((i) => i.id === item.id);
-    if (index !== -1) {
+    if (items.some((i) => i.id === item.id)) {
       setSelectedItem(item);
-      setSelectedIndex(index);
       setShowEditModal(true);
     }
   }
@@ -170,9 +172,12 @@ export function StarList() {
           </Button>
           
           <DropdownMenu nodes={[
-            <Button variant="ghost" onClick={() => setShowRawDataModal(true)} className="w-full text-left flex justify-start">
+            <Button key="raw-data" variant="ghost" onClick={() => setShowRawDataModal(true)} className="w-full text-left flex justify-start">
               <FileText className="w-4 h-4 mr-2" />
               Raw Data
+            </Button>,
+            <Button key="sync" variant="ghost" onClick={() => setShowSyncModal(true)} className="w-full text-left flex justify-start">
+              Sync
             </Button>
           ]} />
         </div>
@@ -180,7 +185,7 @@ export function StarList() {
         <div className="space-y-5">
           {rootItems.length === 0 && rootGroups.length === 0 && (
             <div className="text-center text-muted-foreground py-10">
-              No starred items yet. Click the "Add Item" button to get started!
+              No starred items yet. Click the &quot;Add Item&quot; button to get started!
             </div>
           )}
 
@@ -230,13 +235,12 @@ export function StarList() {
       />
 
       <EditItemModal
+        key={selectedItem.id || 'edit-empty'}
         open={showEditModal}
         onOpenChange={setShowEditModal}
         item={selectedItem}
-        index={selectedIndex}
         addItem={addItem}
         deleteItem={deleteItem}
-        addGroup={addGroup}
       />
 
       <RawDataModal
@@ -245,6 +249,14 @@ export function StarList() {
         groups={groups}
         onOpenChange={setShowRawDataModal}
         resetData={resetData}
+        setData={setData}
+      />
+
+      <SyncModal
+        open={showSyncModal}
+        onOpenChange={setShowSyncModal}
+        items={items}
+        groups={groups}
         setData={setData}
       />
     </div>

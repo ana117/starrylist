@@ -2,35 +2,23 @@
 
 import { Dot, Trash, X } from "lucide-react";
 import { Button } from "./ui/button";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, StarItem } from "@/lib/types";
 
 interface EditItemModalProps {
   open: boolean;
   item: StarItem;
-  index: number;
   onOpenChange: (open: boolean) => void;
   addItem: (newItem: StarItem, index?: number) => string;
   deleteItem: (itemId: string) => void;
-  addGroup: (groupStr: string, parentId?: string) => string | undefined;
 }
 
-export function EditItemModal({ open, item, index, onOpenChange, addItem, deleteItem, addGroup }: EditItemModalProps) {
+export function EditItemModal({ open, item, onOpenChange, addItem, deleteItem }: EditItemModalProps) {
   const [name, setName] = useState(item.name);
   const [price, setPrice] = useState<number | ''>(item.price);
   const [priority, setPriority] = useState(item.priority);
-  const [notes, setNotes] = useState(item.notes);
+  const [notes, setNotes] = useState(item.notes ?? '');
   const [linkInputs, setLinkInputs] = useState<Link[]>(item.links.length > 0 ? item.links : [{ url: '', label: '', price: undefined }]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    setName(item.name);
-    setPrice(item.price);
-    setPriority(item.priority);
-    setNotes(item.notes ?? '');
-    setLinkInputs(item.links.length > 0 ? item.links : [{ url: '', label: '' }]);
-  }, [open, item]);
 
   function handleLinkChange(index: number, field: keyof Link, value: string | number | undefined): void {
     setLinkInputs((prev) =>
@@ -133,7 +121,7 @@ export function EditItemModal({ open, item, index, onOpenChange, addItem, delete
                       </div>
                     </div>
                   ))}
-                  <Button variant="outline" size="sm" onClick={() => setLinkInputs([...linkInputs, { url: '', label: '' }])}>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setLinkInputs([...linkInputs, { url: '', label: '' }])}>
                     Add Link
                   </Button>
                 </div>

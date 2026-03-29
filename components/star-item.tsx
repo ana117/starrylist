@@ -2,7 +2,7 @@
 
 import { StarItem } from "@/lib/types";
 import { ExternalLink, Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 interface StarItemRowProps {
   item: StarItem;
@@ -10,22 +10,18 @@ interface StarItemRowProps {
 }
 
 export function StarItemRow({ item, handleClick }: StarItemRowProps) {
-  const [minPrice, setMinPrice] = useState<number | null>(null);
-  const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const linkLimit = 3;
 
-  useEffect(() => {
+  const { minPrice, maxPrice } = useMemo(() => {
     if (item.links.length === 0) {
-      setMinPrice(null);
-      setMaxPrice(null);
-      return;
+      return { minPrice: null, maxPrice: null };
     }
 
     let min: number | null = null;
     let max: number | null = null;
 
-    item.links.forEach(link => {
-      if (link.price) {
+    item.links.forEach((link) => {
+      if (typeof link.price === 'number') {
         if (min === null || link.price < min) {
           min = link.price;
         }
@@ -35,8 +31,7 @@ export function StarItemRow({ item, handleClick }: StarItemRowProps) {
       }
     });
 
-    setMinPrice(min);
-    setMaxPrice(max);
+    return { minPrice: min, maxPrice: max };
   }, [item.links]);
 
   return (

@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StarryList
 
-## Getting Started
+StarryList is a local-first wishlist app with groups, links, priorities, raw JSON import/export, and password-based cloud sync to Supabase.
 
-First, run the development server:
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Cloud sync setup (Supabase)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Sync uses a password entered by the user. The client hashes `SYNC_HASH_KEY + password` in the browser, then uses the hash as the row `id`.
+Database access runs through server routes (`/api/sync/push` and `/api/sync/pull`) using a Supabase service role key.
 
-## Learn More
+### 1) Create env file
 
-To learn more about Next.js, take a look at the following resources:
+Create `.env.local` from `.env.example` and set values:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY` (server only, **never** expose with `NEXT_PUBLIC_`)
+- `NEXT_PUBLIC_SYNC_HASH_KEY`
+- `SUPABASE_SYNC_TABLE` or `NEXT_PUBLIC_SUPABASE_SYNC_TABLE` (optional, defaults to `starry_sync`)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2) Create the table in Supabase
 
-## Deploy on Vercel
+```sql
+create table if not exists public.starry_sync (
+	id text primary key,
+	data jsonb not null
+);
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3) RLS recommendation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Keep RLS enabled on your sync table and avoid granting broad `anon` write policies.
+Because requests go through your own server route with `SUPABASE_SECRET_KEY`, the browser no longer needs direct table access.
+
+## Sync behavior
+
+- **Push**: Writes local `{ items, groups }` to Supabase using hashed password as `id`.
+- **Overwrite protection**: If data already exists for the same password hash, app asks for explicit overwrite confirmation.
+- **Pull**: Replaces local data with remote data for that password hash.
+
+## Quality checks
+
+```bash
+npm run lint
+npm run build
+```
