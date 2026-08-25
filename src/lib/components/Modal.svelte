@@ -31,15 +31,17 @@
 			onclick={onclose}
 		></button>
 		<div
-			class="relative my-auto w-full rounded-xl bg-white shadow-xl ring-1 ring-zinc-950/5 {wide
+			class="relative my-auto w-full rounded-xl bg-white shadow-xl ring-1 ring-zinc-950/5 dark:bg-zinc-900 {wide
 				? 'max-w-2xl'
 				: 'max-w-md'}"
 		>
-			<header class="flex items-center justify-between border-b border-zinc-200 px-5 py-3">
-				<h2 class="text-sm font-semibold text-zinc-900">{title}</h2>
+			<header
+				class="flex items-center justify-between border-b border-zinc-200 px-5 py-3 dark:border-zinc-700"
+			>
+				<h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</h2>
 				<button
 					type="button"
-					class="rounded-md p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+					class="rounded-md p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800"
 					aria-label="Close"
 					onclick={onclose}
 				>

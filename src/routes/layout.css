@@ -1,3 +1,18 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark input,
+.dark select,
+.dark textarea {
+	background-color: var(--color-zinc-800);
+	border-color: var(--color-zinc-700);
+	color: var(--color-zinc-100);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+	color: var(--color-zinc-500);
+}

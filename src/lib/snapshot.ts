@@ -1,9 +1,13 @@
 import {
 	SCHEMA_VERSION,
 	STATS,
+	THEMES,
+	NUMBER_FORMATS,
 	type CustomValue,
 	type Item,
 	type StarryDocument,
+	type Theme,
+	type NumberFormat,
 	type Wishlist,
 	type Category,
 	type Settings
@@ -121,9 +125,17 @@ function parseCategory(raw: unknown): Category | null {
 function parseSettings(raw: unknown): Settings | null {
 	if (!isRecord(raw)) return null;
 	const currency = str(raw.currency);
+	if (!currency) return null;
 	const stat = str(raw.stat);
-	if (!currency || stat === null || !STATS.includes(stat as Settings['stat'])) return null;
-	return { currency, stat: stat as Settings['stat'] };
+	if (stat === null || !STATS.includes(stat as Settings['stat'])) return null;
+	const themeRaw = str(raw.theme);
+	const theme = themeRaw && THEMES.includes(themeRaw as Theme) ? (themeRaw as Theme) : 'system';
+	const numberFormatRaw = str(raw.numberFormat);
+	const numberFormat =
+		numberFormatRaw && NUMBER_FORMATS.includes(numberFormatRaw as NumberFormat)
+			? (numberFormatRaw as NumberFormat)
+			: 'system';
+	return { currency, stat: stat as Settings['stat'], theme, numberFormat };
 }
 
 export function parseSnapshot(text: string): ParseResult {

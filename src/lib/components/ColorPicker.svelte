@@ -14,7 +14,8 @@
 	{#each colors as color (color)}
 		<button
 			type="button"
-			class="h-6 w-6 rounded-full ring-offset-2 transition-all {value === color
+			class="h-6 w-6 rounded-full ring-offset-2 ring-offset-zinc-50 transition-all dark:ring-offset-zinc-950 {value ===
+			color
 				? 'ring-2 ring-zinc-800'
 				: ''}"
 			style="background-color: {color}"

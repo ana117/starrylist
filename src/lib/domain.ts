@@ -52,9 +52,19 @@ export interface Category {
 	fields: CustomField[];
 }
 
+export type Theme = 'light' | 'dark' | 'system';
+
+export const THEMES: Theme[] = ['light', 'dark', 'system'];
+
+export type NumberFormat = 'system' | 'english' | 'indonesian';
+
+export const NUMBER_FORMATS: NumberFormat[] = ['system', 'english', 'indonesian'];
+
 export interface Settings {
 	currency: string;
 	stat: Stat;
+	theme: Theme;
+	numberFormat: NumberFormat;
 }
 
 export interface StarryDocument {
@@ -69,7 +79,12 @@ export const SCHEMA_VERSION = 1;
 export function emptyDocument(): StarryDocument {
 	return {
 		schemaVersion: SCHEMA_VERSION,
-		settings: { currency: 'USD', stat: 'average' },
+		settings: {
+			currency: 'USD',
+			stat: 'average',
+			theme: 'system',
+			numberFormat: 'system'
+		},
 		wishlists: [],
 		categories: []
 	};

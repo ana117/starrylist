@@ -106,7 +106,7 @@
 >
 	<input
 		type="text"
-		class="grow rounded-lg border-zinc-200 text-sm"
+		class="grow rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
 		placeholder="New top-level category…"
 		bind:value={newName}
 	/>
@@ -120,7 +120,9 @@
 </form>
 
 {#if ordered.length === 0}
-	<div class="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center">
+	<div
+		class="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900"
+	>
 		<p class="text-sm font-medium text-zinc-700">No categories yet.</p>
 		<p class="mt-1 text-sm text-zinc-400">Items work fine without them.</p>
 	</div>
@@ -129,13 +131,13 @@
 		{#each ordered as flat (flat.category.id)}
 			{@const category = flat.category}
 			<li
-				class="group flex flex-wrap items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2"
+				class="group flex flex-wrap items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
 				style="margin-left: {flat.depth * 1.5}rem"
 			>
 				{#if renamingId === category.id}
 					<input
 						type="text"
-						class="w-56 rounded-lg border-zinc-200 px-2 py-1 text-sm"
+						class="w-56 rounded-lg border-zinc-200 px-2 py-1 text-sm dark:border-zinc-700"
 						bind:value={renameValue}
 						onkeydown={(e) => {
 							if (e.key === 'Enter') saveRename();
@@ -151,7 +153,7 @@
 					</button>
 					<button
 						type="button"
-						class="rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50"
+						class="rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
 						onclick={() => (renamingId = null)}
 					>
 						Cancel
@@ -161,7 +163,7 @@
 					<span class="text-xs text-zinc-400">↳ new subcategory:</span>
 					<input
 						type="text"
-						class="w-56 rounded-lg border-zinc-200 px-2 py-1 text-sm"
+						class="w-56 rounded-lg border-zinc-200 px-2 py-1 text-sm dark:border-zinc-700"
 						placeholder="Name…"
 						bind:value={addChildName}
 						onkeydown={(e) => {
@@ -179,7 +181,7 @@
 					</button>
 					<button
 						type="button"
-						class="rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50"
+						class="rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
 						onclick={() => (addingParentId = null)}
 					>
 						Cancel
@@ -195,7 +197,7 @@
 							type="button"
 							class="rounded-md px-2 py-1 text-xs font-medium {fieldsCategoryId === category.id
 								? 'bg-indigo-50 text-indigo-700'
-								: 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800'}"
+								: 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800'}"
 							onclick={() =>
 								(fieldsCategoryId = fieldsCategoryId === category.id ? null : category.id)}
 						>
@@ -203,7 +205,7 @@
 						</button>
 						<button
 							type="button"
-							class="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
+							class="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800"
 							onclick={() => {
 								addingParentId = category.id;
 								addChildName = '';
@@ -214,7 +216,7 @@
 						</button>
 						<button
 							type="button"
-							class="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
+							class="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800"
 							onclick={() => startRename(category.id, category.name)}
 						>
 							Rename
@@ -234,21 +236,21 @@
 {/if}
 
 {#if fieldsCategory}
-	<section class="mt-6 rounded-xl border border-indigo-100 bg-white p-5">
+	<section class="mt-6 rounded-xl border border-indigo-100 bg-white p-5 dark:bg-zinc-900">
 		<h2 class="text-sm font-semibold">Custom Fields — {fieldsCategory.name}</h2>
 		<p class="mt-1 text-xs text-zinc-500">
 			Items in this category can hold one Custom Value per field. Removing a field only hides its
 			values; re-creating a field with the same name and type reveals them again.
 		</p>
 
-		<div class="mt-3 divide-y divide-zinc-100">
+		<div class="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800">
 			{#each managedFields as field (field.id)}
 				<div class="flex flex-wrap items-end gap-x-3 gap-y-2 py-2.5">
 					<label class="block w-44">
 						<span class="mb-1 block text-xs font-medium text-zinc-500">Name</span>
 						<input
 							type="text"
-							class="w-full rounded-lg border-zinc-200 text-sm"
+							class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
 							value={field.name}
 							onchange={(e) =>
 								app.updateField(fieldsCategory.id, field.id, { name: e.currentTarget.value })}
@@ -257,7 +259,7 @@
 					<label class="block w-28">
 						<span class="mb-1 block text-xs font-medium text-zinc-500">Type</span>
 						<select
-							class="w-full rounded-lg border-zinc-200 text-sm"
+							class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
 							value={field.type}
 							onchange={(e) =>
 								app.updateField(fieldsCategory.id, field.id, {
@@ -276,7 +278,7 @@
 							>
 							<input
 								type="text"
-								class="w-full rounded-lg border-zinc-200 text-sm"
+								class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
 								value={field.options.join(', ')}
 								onchange={(e) => updateOptions(field, e.currentTarget.value)}
 							/>
@@ -296,7 +298,7 @@
 		</div>
 
 		<form
-			class="mt-2 flex flex-wrap items-end gap-x-3 gap-y-2 border-t border-zinc-200 pt-4"
+			class="mt-2 flex flex-wrap items-end gap-x-3 gap-y-2 border-t border-zinc-200 pt-4 dark:border-zinc-700"
 			onsubmit={(e) => {
 				e.preventDefault();
 				addField();
@@ -306,14 +308,17 @@
 				<span class="mb-1 block text-xs font-medium text-zinc-500">New field name</span>
 				<input
 					type="text"
-					class="w-full rounded-lg border-zinc-200 text-sm"
+					class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
 					placeholder="Priority, Size…"
 					bind:value={newFieldName}
 				/>
 			</label>
 			<label class="block w-28">
 				<span class="mb-1 block text-xs font-medium text-zinc-500">Type</span>
-				<select class="w-full rounded-lg border-zinc-200 text-sm" bind:value={newFieldType}>
+				<select
+					class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
+					bind:value={newFieldType}
+				>
 					{#each fieldTypes as t (t)}
 						<option value={t}>{t}</option>
 					{/each}
@@ -325,7 +330,7 @@
 					>
 					<input
 						type="text"
-						class="w-full rounded-lg border-zinc-200 text-sm"
+						class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
 						placeholder="high, medium, low"
 						bind:value={newFieldOptions}
 					/>

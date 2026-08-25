@@ -31,7 +31,7 @@
 	{#if field.type === 'text'}
 		<input
 			type="text"
-			class="w-full rounded-lg border-zinc-200 text-sm"
+			class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
 			value={value === undefined ? '' : String(value)}
 			onchange={(e) => commitText(e.currentTarget.value, false)}
 			placeholder={field.name}
@@ -40,7 +40,7 @@
 		<input
 			type="number"
 			step="any"
-			class="w-full rounded-lg border-zinc-200 text-sm"
+			class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
 			value={value === undefined ? '' : String(value)}
 			onchange={(e) => commitText(e.currentTarget.value, true)}
 			placeholder={field.name}
@@ -48,15 +48,15 @@
 	{:else if field.type === 'date'}
 		<input
 			type="date"
-			class="w-full rounded-lg border-zinc-200 text-sm"
+			class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
 			value={typeof value === 'string' ? value : ''}
 			onchange={(e) => onchange(e.currentTarget.value || null)}
 		/>
 	{:else}
 		<select
-			class="w-full rounded-lg border-zinc-200 text-sm {value !== undefined &&
+			class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700 {value !== undefined &&
 			!field.options.includes(String(value))
-				? 'bg-amber-50'
+				? 'bg-amber-50 dark:bg-amber-950/40'
 				: ''}"
 			value={value === undefined ? '' : String(value)}
 			onchange={(e) => onchange(e.currentTarget.value || null)}

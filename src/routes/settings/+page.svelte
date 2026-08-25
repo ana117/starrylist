@@ -1,8 +1,15 @@
 <script lang="ts">
 	import Modal from '$lib/components/Modal.svelte';
+	import { NUMBER_FORMATS, type NumberFormat } from '$lib/domain';
 	import { isValidCurrency, formatMoney } from '$lib/money';
 	import { parseSnapshot } from '$lib/snapshot';
 	import { app } from '$lib/state.svelte';
+
+	const formatLabels: Record<NumberFormat, string> = {
+		system: 'System (follow browser)',
+		english: 'English — 1,234.56',
+		indonesian: 'Indonesian — 1.234,56'
+	};
 
 	let currencyInput = $state(app.doc.settings.currency);
 	let currencyError = $state('');
@@ -83,7 +90,9 @@
 </div>
 
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-	<section class="rounded-xl border border-zinc-200 bg-white p-5">
+	<section
+		class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900"
+	>
 		<h2 class="text-sm font-semibold">Currency</h2>
 		<p class="mt-1 text-xs text-zinc-500">
 			One app-level currency. Every Price, figure, and Total is displayed with it.
@@ -93,7 +102,7 @@
 				<span class="mb-1 block text-xs font-medium text-zinc-500">Code</span>
 				<input
 					type="text"
-					class="w-full rounded-lg border-zinc-200 text-sm uppercase"
+					class="w-full rounded-lg border-zinc-200 text-sm uppercase dark:border-zinc-700"
 					maxlength="3"
 					bind:value={currencyInput}
 				/>
@@ -110,19 +119,47 @@
 			<p class="mt-2 text-xs text-red-600">{currencyError}</p>
 		{:else}
 			<p class="mt-2 text-xs text-zinc-400">
-				Preview: {formatMoney(1234.56, app.doc.settings.currency)}
+				Preview: {formatMoney(1234.56, app.doc.settings)}
 			</p>
 		{/if}
 	</section>
 
-	<section class="rounded-xl border border-zinc-200 bg-white p-5">
-		<h2 class="text-sm font-semibold">Price stat</h2>
+	<section
+		class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900"
+	>
+		<h2 class="text-sm font-semibold">Number format</h2>
 		<p class="mt-1 text-xs text-zinc-500">
-			The single Low/Average/High selector lives in the top bar so it is always one click away.
+			How amounts are punctuated. Indonesian uses a dot for thousands: 1.234,56.
+		</p>
+		<div class="mt-3 flex items-end gap-2">
+			<label class="block w-44">
+				<span class="mb-1 block text-xs font-medium text-zinc-500">Style</span>
+				<select
+					class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
+					value={app.doc.settings.numberFormat}
+					onchange={(e) => app.setNumberFormat(e.currentTarget.value as NumberFormat)}
+				>
+					{#each NUMBER_FORMATS as format (format)}
+						<option value={format}>{formatLabels[format]}</option>
+					{/each}
+				</select>
+			</label>
+		</div>
+		<p class="mt-2 text-xs text-zinc-400">Preview: {formatMoney(1234567.89, app.doc.settings)}</p>
+	</section>
+
+	<section
+		class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900"
+	>
+		<h2 class="text-sm font-semibold">Appearance</h2>
+		<p class="mt-1 text-xs text-zinc-500">
+			The Light / Dark / System theme toggle lives in the top bar, next to the Price stat.
 		</p>
 	</section>
 
-	<section class="rounded-xl border border-zinc-200 bg-white p-5 lg:col-span-2">
+	<section
+		class="rounded-xl border border-zinc-200 bg-white p-5 lg:col-span-2 dark:border-zinc-700 dark:bg-zinc-900"
+	>
 		<h2 class="text-sm font-semibold">Snapshots</h2>
 		<p class="mt-1 text-xs text-zinc-500">
 			A Snapshot is a full JSON export of everything. Importing one replaces all current data —
@@ -139,7 +176,7 @@
 			</button>
 
 			<label
-				class="cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+				class="cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
 			>
 				Choose file to import…
 				<input type="file" accept="application/json,.json" class="sr-only" onchange={pickImport} />
@@ -147,12 +184,18 @@
 		</div>
 
 		{#if importMessage}
-			<p class="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+			<p
+				class="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+			>
 				{importMessage}
 			</p>
 		{/if}
 		{#if importError}
-			<p class="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{importError}</p>
+			<p
+				class="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300"
+			>
+				{importError}
+			</p>
 		{/if}
 	</section>
 </div>
@@ -165,9 +208,15 @@
 	{#if importPreview?.ok}
 		<p class="text-sm leading-relaxed text-zinc-600">
 			This snapshot contains
-			<span class="font-semibold text-zinc-900">{importPreview.counts.wishlists} wishlists</span>,
-			<span class="font-semibold text-zinc-900">{importPreview.counts.items} items</span>, and
-			<span class="font-semibold text-zinc-900">{importPreview.counts.categories} categories</span>.
+			<span class="font-semibold text-zinc-900 dark:text-zinc-100"
+				>{importPreview.counts.wishlists} wishlists</span
+			>,
+			<span class="font-semibold text-zinc-900 dark:text-zinc-100"
+				>{importPreview.counts.items} items</span
+			>, and
+			<span class="font-semibold text-zinc-900 dark:text-zinc-100"
+				>{importPreview.counts.categories} categories</span
+			>.
 		</p>
 		<p class="mt-2 text-sm font-medium text-red-600">
 			Importing replaces everything currently stored — this cannot be undone.
@@ -175,7 +224,7 @@
 		<div class="mt-5 flex justify-end gap-2">
 			<button
 				type="button"
-				class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+				class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
 				onclick={() => (importing = false)}
 			>
 				Cancel
@@ -193,7 +242,7 @@
 		<div class="mt-5 flex justify-end">
 			<button
 				type="button"
-				class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+				class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
 				onclick={() => (importing = false)}
 			>
 				Close

@@ -58,7 +58,9 @@
 </div>
 
 {#if app.doc.wishlists.length === 0}
-	<div class="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center">
+	<div
+		class="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900"
+	>
 		<p class="text-sm font-medium text-zinc-700">No wishlists yet.</p>
 		<p class="mt-1 text-sm text-zinc-400">Create your first one below.</p>
 	</div>
@@ -70,7 +72,7 @@
 			<li>
 				<a
 					href={resolve('/wishlists/[id]', { id: wishlist.id })}
-					class="group block h-full rounded-xl border border-zinc-200 bg-white p-5 transition-shadow hover:border-indigo-300 hover:shadow-md"
+					class="group block h-full rounded-xl border border-zinc-200 bg-white p-5 transition-shadow hover:border-indigo-300 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
 				>
 					<div class="flex items-start justify-between gap-2">
 						<span
@@ -82,7 +84,7 @@
 						<div class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
 							<button
 								type="button"
-								class="rounded-md p-1.5 text-xs text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+								class="rounded-md p-1.5 text-xs text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800"
 								aria-label="Edit {wishlist.name}"
 								onclick={(e) => {
 									e.preventDefault();
@@ -110,7 +112,7 @@
 						{count === 1 ? 'item' : 'items'}
 					</p>
 					<p class="mt-3 text-lg font-bold text-indigo-700 tabular-nums">
-						{formatMoney(total, app.doc.settings.currency)}
+						{formatMoney(total, app.doc.settings)}
 					</p>
 				</a>
 			</li>
@@ -119,7 +121,7 @@
 {/if}
 
 <form
-	class="mt-8 rounded-xl border border-zinc-200 bg-white p-5"
+	class="mt-8 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900"
 	onsubmit={(e) => {
 		e.preventDefault();
 		create();
@@ -131,7 +133,7 @@
 			<span class="mb-1 block text-xs font-medium text-zinc-500">Name</span>
 			<input
 				type="text"
-				class="w-full rounded-lg border-zinc-200 text-sm"
+				class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
 				placeholder="Gaming PC, Birthday…"
 				bind:value={newName}
 			/>
@@ -141,7 +143,7 @@
 			<input
 				type="text"
 				maxlength="4"
-				class="w-full rounded-lg border-zinc-200 text-center text-sm"
+				class="w-full rounded-lg border-zinc-200 text-center text-sm dark:border-zinc-700"
 				placeholder="☆"
 				bind:value={newEmoji}
 			/>
@@ -173,14 +175,18 @@
 	>
 		<label class="block">
 			<span class="mb-1 block text-xs font-medium text-zinc-500">Name</span>
-			<input type="text" class="w-full rounded-lg border-zinc-200 text-sm" bind:value={editName} />
+			<input
+				type="text"
+				class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
+				bind:value={editName}
+			/>
 		</label>
 		<label class="block">
 			<span class="mb-1 block text-xs font-medium text-zinc-500">Icon</span>
 			<input
 				type="text"
 				maxlength="4"
-				class="w-20 rounded-lg border-zinc-200 text-center text-sm"
+				class="w-20 rounded-lg border-zinc-200 text-center text-sm dark:border-zinc-700"
 				placeholder="☆"
 				bind:value={editEmoji}
 			/>
@@ -192,7 +198,7 @@
 		<div class="flex justify-end gap-2 pt-2">
 			<button
 				type="button"
-				class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+				class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
 				onclick={() => (editing = null)}
 			>
 				Cancel

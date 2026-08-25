@@ -4,8 +4,10 @@ import type {
 	CustomValue,
 	Item,
 	Link,
+	NumberFormat,
 	StarryDocument,
 	Stat,
+	Theme,
 	Wishlist
 } from './domain';
 import { emptyDocument } from './domain';
@@ -96,6 +98,16 @@ export class AppState {
 
 	setStat(stat: Stat): void {
 		this.doc.settings.stat = stat;
+		this.#commit();
+	}
+
+	setTheme(theme: Theme): void {
+		this.doc.settings.theme = theme;
+		this.#commit();
+	}
+
+	setNumberFormat(numberFormat: NumberFormat): void {
+		this.doc.settings.numberFormat = numberFormat;
 		this.#commit();
 	}
 
