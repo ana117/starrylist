@@ -253,6 +253,11 @@
 			>
 				{wishlist.emoji ?? '☆'}
 			</span>
+			<ProgressStar
+				fraction={progress.total === 0 ? 0 : progress.bought / progress.total}
+				sizeClass="h-14 w-14"
+				label={progress.total === 0 ? undefined : `${progressPct}%`}
+			/>
 			<div>
 				<h1 class="text-2xl font-bold tracking-tight">{wishlist.name}</h1>
 				<p class="text-xs text-zinc-500">
@@ -262,16 +267,9 @@
 		</div>
 		<div class="flex items-center gap-6">
 			<div
-				class="flex flex-col items-center gap-1"
+				class="flex flex-col items-center"
 				title="{progress.bought} of {progress.total} included items bought ({progressPct}%)"
 			>
-				<ProgressStar
-					fraction={progress.total === 0 ? 0 : progress.bought / progress.total}
-					sizeClass="h-10 w-10"
-				/>
-				<span class="text-xs font-semibold text-zinc-500 tabular-nums dark:text-zinc-400">
-					{progress.bought}/{progress.total} · {progressPct}%
-				</span>
 			</div>
 			<div class="text-right">
 				<p class="text-xs font-medium tracking-wide text-zinc-400 uppercase">Total ({stat})</p>
@@ -416,17 +414,18 @@
 						})}
 				/>
 
-				<input
-					type="checkbox"
-					class="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
-					checked={item.bought}
-					title="Bought"
+				<button
+					type="button"
+					class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors {item.bought
+						? 'bg-emerald-500 text-white hover:bg-emerald-600'
+						: 'border-2 border-zinc-300 text-transparent hover:border-emerald-400 dark:border-zinc-600'}"
 					aria-label="Mark {item.name} as bought"
-					onchange={(e) =>
-						app.updateItem(wishlist.id, item.id, {
-							bought: e.currentTarget.checked
-						})}
-				/>
+					aria-pressed={item.bought}
+					title={item.bought ? 'Bought — click to undo' : 'Mark as bought'}
+					onclick={() => app.updateItem(wishlist.id, item.id, { bought: !item.bought })}
+				>
+					✓
+				</button>
 
 				<div class="min-w-0 grow basis-40">
 					<button

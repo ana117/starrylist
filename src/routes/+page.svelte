@@ -77,12 +77,21 @@
 					class="group block h-full rounded-xl border border-zinc-200 bg-white p-5 transition-shadow hover:border-indigo-300 hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900"
 				>
 					<div class="flex items-start justify-between gap-2">
-						<span
-							class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-xl"
-							style="background-color: {wishlist.color ?? '#e4e4e7'}33"
-						>
-							{wishlist.emoji ?? '☆'}
-						</span>
+						<div class="flex items-center gap-2">
+							<span
+								class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-xl"
+								style="background-color: {wishlist.color ?? '#e4e4e7'}33"
+							>
+								{wishlist.emoji ?? '☆'}
+							</span>
+							{#if progress.total > 0}
+								<ProgressStar
+									fraction={progress.bought / progress.total}
+									sizeClass="h-14 w-14"
+									label={`${Math.round((progress.bought / progress.total) * 100)}%`}
+								/>
+							{/if}
+						</div>
 						<div class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
 							<button
 								type="button"
@@ -116,14 +125,6 @@
 					<p class="mt-3 text-lg font-bold text-indigo-700 tabular-nums dark:text-indigo-300">
 						{formatMoney(total, app.doc.settings)}
 					</p>
-					{#if progress.total > 0}
-						<div class="mt-2 flex items-center gap-1.5">
-							<ProgressStar fraction={progress.bought / progress.total} sizeClass="h-4 w-4" />
-							<span class="text-xs font-medium text-zinc-500 tabular-nums dark:text-zinc-400">
-								{progress.bought}/{progress.total}
-							</span>
-						</div>
-					{/if}
 				</a>
 			</li>
 		{/each}

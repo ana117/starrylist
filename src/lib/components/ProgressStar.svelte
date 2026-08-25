@@ -3,10 +3,12 @@
 
 	let {
 		fraction,
-		sizeClass = 'h-7 w-7'
+		sizeClass = 'h-7 w-7',
+		label
 	}: {
 		fraction: number;
 		sizeClass?: string;
+		label?: string;
 	} = $props();
 
 	const clipId = `star-clip-${newId()}`;
@@ -23,5 +25,22 @@
 		</clipPath>
 	</defs>
 	<path d={STAR_PATH} class="fill-zinc-200 dark:fill-zinc-700" />
-	<path d={STAR_PATH} class="fill-amber-400" clip-path={`url(#${clipId})`} />
+	<path d={STAR_PATH} class="fill-indigo-700 dark:fill-indigo-300" clip-path={`url(#${clipId})`} />
+	{#if label}
+		<text
+			x="12"
+			y="12"
+			text-anchor="middle"
+			dominant-baseline="central"
+			font-size="5"
+			font-weight="800"
+			fill="white"
+			paint-order="stroke"
+			stroke="#3f3f46"
+			stroke-width="2"
+			stroke-linejoin="round"
+		>
+			{label}
+		</text>
+	{/if}
 </svg>
