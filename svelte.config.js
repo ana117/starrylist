@@ -8,7 +8,7 @@ const config = {
 	},
 	preprocess: vitePreprocess(),
 	kit: {
-		paths: { base: process.env.BASE_PATH ?? '/starrylist', relative: false },
+		paths: { base: process.env.BASE_PATH ?? '', relative: false },
 		adapter: adapter({
 			pages: 'build',
 			assets: 'build',
