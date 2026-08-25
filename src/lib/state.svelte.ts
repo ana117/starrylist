@@ -213,11 +213,13 @@ export class AppState {
 		this.#commit();
 	}
 
-	addPrice(wishlistId: string, itemId: string, amount: number): void {
+	addPrice(wishlistId: string, itemId: string, amount: number): string | null {
 		const item = this.#item(wishlistId, itemId);
-		if (!item || !Number.isFinite(amount)) return;
-		item.prices.push({ id: newId(), amount });
+		if (!item || !Number.isFinite(amount)) return null;
+		const price = { id: newId(), amount };
+		item.prices.push(price);
 		this.#commit();
+		return price.id;
 	}
 
 	updatePrice(
@@ -244,14 +246,21 @@ export class AppState {
 		this.#commit();
 	}
 
-	addLink(wishlistId: string, itemId: string, url: string, label?: string, priceId?: string): void {
+	addLink(
+		wishlistId: string,
+		itemId: string,
+		url: string,
+		label?: string,
+		priceId?: string
+	): string | null {
 		const item = this.#item(wishlistId, itemId);
-		if (!item) return;
+		if (!item) return null;
 		const link: Link = { id: newId(), url };
 		if (label) link.label = label;
 		if (priceId && item.prices.some((p) => p.id === priceId)) link.priceId = priceId;
 		item.links.push(link);
 		this.#commit();
+		return link.id;
 	}
 	updateLink(
 		wishlistId: string,
@@ -282,6 +291,22 @@ export class AppState {
 		const index = item.links.findIndex((l) => l.id === linkId);
 		if (index === -1) return;
 		item.links.splice(index, 1);
+		this.#commit();
+	}
+
+	removeOfferRow(wishlistId: string, itemId: string, linkId?: string, priceId?: string): void {
+		const item = this.#item(wishlistId, itemId);
+		if (!item) return;
+		let doomedPrice = priceId ?? null;
+		if (linkId) {
+			const link = item.links.find((l) => l.id === linkId);
+			if (!link && !doomedPrice) return;
+			item.links = item.links.filter((l) => l.id !== linkId);
+			doomedPrice = doomedPrice ?? link?.priceId ?? null;
+		}
+		if (doomedPrice && !item.links.some((l) => l.priceId === doomedPrice)) {
+			item.prices = item.prices.filter((p) => p.id !== doomedPrice);
+		}
 		this.#commit();
 	}
 

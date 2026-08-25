@@ -113,6 +113,69 @@
 		}
 	}
 
+	interface OfferRow {
+		key: string;
+		linkId?: string;
+		priceId?: string;
+		url?: string;
+		label?: string;
+		amount?: number;
+	}
+
+	const offerRows = $derived.by<OfferRow[]>(() => {
+		if (!editingItem) return [];
+		const rows: OfferRow[] = [];
+		for (const link of editingItem.links) {
+			const price = link.priceId
+				? editingItem.prices.find((p) => p.id === link.priceId)
+				: undefined;
+			rows.push({
+				key: `l-${link.id}`,
+				linkId: link.id,
+				priceId: link.priceId,
+				url: link.url,
+				label: link.label,
+				amount: price?.amount
+			});
+		}
+		for (const price of editingItem.prices) {
+			if (!editingItem.links.some((l) => l.priceId === price.id)) {
+				rows.push({ key: `p-${price.id}`, priceId: price.id, amount: price.amount });
+			}
+		}
+		return rows;
+	});
+
+	function setRowAmount(row: OfferRow, raw: string): void {
+		if (!wishlist || !editingItem) return;
+		const amount = raw.trim() === '' ? null : Number(raw);
+		if (Number.isNaN(amount)) return;
+		if (row.linkId) {
+			if (row.priceId) {
+				if (amount === null) {
+					app.removePrice(wishlist.id, editingItem.id, row.priceId);
+				} else {
+					app.updatePrice(wishlist.id, editingItem.id, row.priceId, { amount });
+				}
+			} else if (amount !== null) {
+				const priceId = app.addPrice(wishlist.id, editingItem.id, amount);
+				if (priceId) app.updateLink(wishlist.id, editingItem.id, row.linkId, { priceId });
+			}
+		} else if (row.priceId && amount !== null) {
+			app.updatePrice(wishlist.id, editingItem.id, row.priceId, { amount });
+		}
+	}
+
+	function addSourceRow(): void {
+		if (!wishlist || !editingItem) return;
+		app.addLink(wishlist.id, editingItem.id, '');
+	}
+
+	function removeRow(row: OfferRow): void {
+		if (!wishlist || !editingItem) return;
+		app.removeOfferRow(wishlist.id, editingItem.id, row.linkId, row.priceId);
+	}
+
 	const editingItem = $derived(wishlist?.items.find((i) => i.id === editingItemId) ?? null);
 
 	const flatCategories = $derived(flattenCategories(app.doc.categories));
@@ -519,120 +582,88 @@
 				</label>
 
 				<section>
-					<h3 class="mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">Prices</h3>
-					{#if editingItem.prices.length === 0}
-						<p class="mb-2 text-xs text-zinc-400">No prices yet — bare amounts, no link needed.</p>
-					{/if}
-					<ul class="space-y-2">
-						{#each editingItem.prices as price (price.id)}
-							<li class="flex items-center gap-2">
-								<input
-									type="number"
-									min="0"
-									step="0.01"
-									class="w-32 rounded-lg border-zinc-200 text-sm tabular-nums dark:border-zinc-700"
-									value={price.amount}
-									aria-label="Price amount"
-									onchange={(e) =>
-										app.updatePrice(wishlist.id, editingItem.id, price.id, {
-											amount: Number(e.currentTarget.value)
-										})}
-								/>
-								<button
-									type="button"
-									class="rounded-md p-1 text-xs text-zinc-300 hover:bg-red-50 hover:text-red-600"
-									aria-label="Remove price"
-									onclick={() => app.removePrice(wishlist.id, editingItem.id, price.id)}
-								>
-									✕
-								</button>
-							</li>
-						{/each}
-					</ul>
-					<button
-						type="button"
-						class="mt-2 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-						onclick={() => app.addPrice(wishlist.id, editingItem.id, 0)}
-					>
-						+ Add price
-					</button>
-				</section>
-
-				<section>
-					<h3 class="mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">Links</h3>
-					{#if editingItem.links.length === 0}
+					<h3 class="mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">
+						Prices &amp; Links
+					</h3>
+					{#if offerRows.length === 0}
 						<p class="mb-2 text-xs text-zinc-400">
-							Bare links are fine — labels and price references are optional.
+							One row per shop or sighting — fill in what you know, leave the rest empty.
 						</p>
 					{/if}
 					<ul class="space-y-2">
-						{#each editingItem.links as link (link.id)}
+						{#each offerRows as row (row.key)}
 							<li
 								class="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50 p-2 dark:bg-zinc-800/40"
 							>
 								<input
-									type="url"
-									class="min-w-40 grow basis-52 rounded-lg border-zinc-200 text-xs dark:border-zinc-700"
-									value={link.url}
-									placeholder="https://…"
-									aria-label="Link URL"
-									onchange={(e) =>
-										app.updateLink(wishlist.id, editingItem.id, link.id, {
-											url: e.currentTarget.value
-										})}
+									type="number"
+									min="0"
+									step="0.01"
+									class="w-28 rounded-lg border-zinc-200 text-sm tabular-nums dark:border-zinc-700"
+									value={row.amount ?? ''}
+									placeholder="Amount"
+									aria-label="Price amount"
+									onchange={(e) => setRowAmount(row, e.currentTarget.value)}
 								/>
-								<input
-									type="text"
-									class="w-32 rounded-lg border-zinc-200 text-xs dark:border-zinc-700"
-									value={link.label ?? ''}
-									placeholder="Label"
-									aria-label="Link label"
-									onchange={(e) =>
-										app.updateLink(wishlist.id, editingItem.id, link.id, {
-											label: e.currentTarget.value
-										})}
-								/>
-								<select
-									class="rounded-lg border-zinc-200 py-1 text-xs dark:border-zinc-700"
-									value={link.priceId ?? ''}
-									aria-label="Linked price"
-									onchange={(e) =>
-										app.updateLink(wishlist.id, editingItem.id, link.id, {
-											priceId: e.currentTarget.value || undefined
-										})}
-								>
-									<option value="">No price ref</option>
-									{#each editingItem.prices as price (price.id)}
-										<option value={price.id}>{formatMoney(price.amount, app.doc.settings)}</option>
-									{/each}
-								</select>
-								<a
-									href={link.url}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="rounded-md p-1 text-xs text-zinc-400 hover:text-indigo-600"
-									aria-label="Open link"
-								>
-									↗
-								</a>
+								{#if row.linkId}
+									<input
+										type="text"
+										class="w-36 rounded-lg border-zinc-200 text-xs dark:border-zinc-700"
+										value={row.label ?? ''}
+										placeholder="Label (shop)"
+										aria-label="Link label"
+										onchange={(e) =>
+											app.updateLink(wishlist.id, editingItem.id, row.linkId!, {
+												label: e.currentTarget.value
+											})}
+									/>
+									<input
+										type="url"
+										class="min-w-40 grow basis-52 rounded-lg border-zinc-200 text-xs dark:border-zinc-700"
+										value={row.url ?? ''}
+										placeholder="https://…  (leave empty for an in-store price)"
+										aria-label="Link URL"
+										onchange={(e) =>
+											app.updateLink(wishlist.id, editingItem.id, row.linkId!, {
+												url: e.currentTarget.value
+											})}
+									/>
+									{#if row.url}
+										<a
+											href={row.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="rounded-md p-1 text-xs text-zinc-400 hover:text-indigo-600"
+											aria-label="Open link"
+										>
+											↗
+										</a>
+									{/if}
+								{:else}
+									<span class="grow basis-40 text-xs text-zinc-400">
+										Standalone price — no link
+									</span>
+								{/if}
 								<button
 									type="button"
-									class="rounded-md p-1 text-xs text-zinc-300 hover:bg-red-50 hover:text-red-600"
-									aria-label="Remove link"
-									onclick={() => app.removeLink(wishlist.id, editingItem.id, link.id)}
+									class="rounded-md p-1 text-xs text-zinc-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40"
+									aria-label="Remove row"
+									onclick={() => removeRow(row)}
 								>
 									✕
 								</button>
 							</li>
 						{/each}
 					</ul>
-					<button
-						type="button"
-						class="mt-2 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-						onclick={() => app.addLink(wishlist.id, editingItem.id, '')}
-					>
-						+ Add link
-					</button>
+					<div class="mt-2 flex flex-wrap gap-2">
+						<button
+							type="button"
+							class="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+							onclick={addSourceRow}
+						>
+							+ Add source
+						</button>
+					</div>
 				</section>
 
 				{#if editingFields.length !== 0}
