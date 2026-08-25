@@ -153,7 +153,7 @@
 					</button>
 					<button
 						type="button"
-						class="rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+						class="rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 						onclick={() => (renamingId = null)}
 					>
 						Cancel
@@ -181,7 +181,7 @@
 					</button>
 					<button
 						type="button"
-						class="rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+						class="rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 						onclick={() => (addingParentId = null)}
 					>
 						Cancel
@@ -197,7 +197,7 @@
 							type="button"
 							class="rounded-md px-2 py-1 text-xs font-medium {fieldsCategoryId === category.id
 								? 'bg-indigo-50 text-indigo-700'
-								: 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800'}"
+								: 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'}"
 							onclick={() =>
 								(fieldsCategoryId = fieldsCategoryId === category.id ? null : category.id)}
 						>
@@ -205,7 +205,7 @@
 						</button>
 						<button
 							type="button"
-							class="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800"
+							class="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
 							onclick={() => {
 								addingParentId = category.id;
 								addChildName = '';
@@ -216,7 +216,7 @@
 						</button>
 						<button
 							type="button"
-							class="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800"
+							class="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
 							onclick={() => startRename(category.id, category.name)}
 						>
 							Rename

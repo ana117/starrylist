@@ -25,7 +25,7 @@
 	<div class="mt-5 flex justify-end gap-2">
 		<button
 			type="button"
-			class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+			class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 			onclick={oncancel}
 		>
 			Cancel

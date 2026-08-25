@@ -173,7 +173,9 @@
 		</div>
 		<div class="text-right">
 			<p class="text-xs font-medium tracking-wide text-zinc-400 uppercase">Total ({stat})</p>
-			<p class="text-3xl font-bold tracking-tight text-indigo-700 tabular-nums">
+			<p
+				class="text-3xl font-bold tracking-tight text-indigo-700 tabular-nums dark:text-indigo-300"
+			>
 				{formatMoney(wishlistTotal(wishlist, stat), app.doc.settings)}
 			</p>
 		</div>
@@ -251,7 +253,7 @@
 		{#snippet itemRow(item: Item)}
 			{@const figure = itemTotal(item, stat)}
 			<li
-				class="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border bg-white px-4 py-3 transition-colors {item.included
+				class="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border bg-white px-4 py-3 transition-colors dark:bg-zinc-900 {item.included
 					? 'border-zinc-200 dark:border-zinc-700'
 					: 'border-dashed border-zinc-300 opacity-60 dark:border-zinc-700'} {draggingId === item.id
 					? 'ring-2 ring-indigo-400'
@@ -484,7 +486,7 @@
 					</ul>
 					<button
 						type="button"
-						class="mt-2 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+						class="mt-2 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 						onclick={() => app.addPrice(wishlist.id, editingItem.id, 0)}
 					>
 						+ Add price
@@ -569,7 +571,7 @@
 					</ul>
 					<button
 						type="button"
-						class="mt-2 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+						class="mt-2 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 						onclick={() => app.addLink(wishlist.id, editingItem.id, '')}
 					>
 						+ Add link
@@ -605,7 +607,7 @@
 				>
 					<button
 						type="button"
-						class="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+						class="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 						onclick={() => app.duplicateItem(wishlist.id, editingItem.id)}
 					>
 						Duplicate

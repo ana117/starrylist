@@ -6,9 +6,9 @@
 	import { app } from '$lib/state.svelte';
 
 	const formatLabels: Record<NumberFormat, string> = {
-		system: 'System (follow browser)',
-		english: 'English — 1,234.56',
-		indonesian: 'Indonesian — 1.234,56'
+		system: 'System',
+		english: 'Comma',
+		indonesian: 'Dot'
 	};
 
 	let currencyInput = $state(app.doc.settings.currency);
@@ -119,42 +119,30 @@
 			<p class="mt-2 text-xs text-red-600">{currencyError}</p>
 		{:else}
 			<p class="mt-2 text-xs text-zinc-400">
-				Preview: {formatMoney(1234.56, app.doc.settings)}
+				Preview: {formatMoney(1234567.89, app.doc.settings)}
 			</p>
 		{/if}
-	</section>
 
-	<section
-		class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900"
-	>
-		<h2 class="text-sm font-semibold">Number format</h2>
-		<p class="mt-1 text-xs text-zinc-500">
-			How amounts are punctuated. Indonesian uses a dot for thousands: 1.234,56.
-		</p>
-		<div class="mt-3 flex items-end gap-2">
-			<label class="block w-44">
-				<span class="mb-1 block text-xs font-medium text-zinc-500">Style</span>
-				<select
-					class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
-					value={app.doc.settings.numberFormat}
-					onchange={(e) => app.setNumberFormat(e.currentTarget.value as NumberFormat)}
-				>
-					{#each NUMBER_FORMATS as format (format)}
-						<option value={format}>{formatLabels[format]}</option>
-					{/each}
-				</select>
-			</label>
+		<div class="mt-5 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+			<h2 class="text-sm font-semibold">Number format</h2>
+			<p class="mt-1 text-xs text-zinc-500">
+				How amounts are punctuated. Dot: 1.234,56 · Comma: 1,234.56.
+			</p>
+			<div class="mt-3 flex items-end gap-2">
+				<label class="block w-44">
+					<span class="mb-1 block text-xs font-medium text-zinc-500">Style</span>
+					<select
+						class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
+						value={app.doc.settings.numberFormat}
+						onchange={(e) => app.setNumberFormat(e.currentTarget.value as NumberFormat)}
+					>
+						{#each NUMBER_FORMATS as format (format)}
+							<option value={format}>{formatLabels[format]}</option>
+						{/each}
+					</select>
+				</label>
+			</div>
 		</div>
-		<p class="mt-2 text-xs text-zinc-400">Preview: {formatMoney(1234567.89, app.doc.settings)}</p>
-	</section>
-
-	<section
-		class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900"
-	>
-		<h2 class="text-sm font-semibold">Appearance</h2>
-		<p class="mt-1 text-xs text-zinc-500">
-			The Light / Dark / System theme toggle lives in the top bar, next to the Price stat.
-		</p>
 	</section>
 
 	<section
@@ -176,7 +164,7 @@
 			</button>
 
 			<label
-				class="cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+				class="cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 			>
 				Choose file to import…
 				<input type="file" accept="application/json,.json" class="sr-only" onchange={pickImport} />
@@ -224,7 +212,7 @@
 		<div class="mt-5 flex justify-end gap-2">
 			<button
 				type="button"
-				class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+				class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 				onclick={() => (importing = false)}
 			>
 				Cancel
@@ -242,7 +230,7 @@
 		<div class="mt-5 flex justify-end">
 			<button
 				type="button"
-				class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+				class="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 				onclick={() => (importing = false)}
 			>
 				Close
