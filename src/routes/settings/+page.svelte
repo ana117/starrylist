@@ -238,3 +238,5 @@
 		</div>
 	{/if}
 </Modal>
+
+<svelte:head><title>Settings · Starrylist</title></svelte:head>

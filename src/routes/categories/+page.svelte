@@ -359,3 +359,5 @@
 	onconfirm={confirmDelete}
 	oncancel={() => (deletingId = null)}
 />
+
+<svelte:head><title>Categories · Starrylist</title></svelte:head>

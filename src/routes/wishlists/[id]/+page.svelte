@@ -158,6 +158,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>{wishlist ? `${wishlist.name} · Starrylist` : 'Starrylist'}</title>
+</svelte:head>
+
 {#if !wishlist}
 	<div
 		class="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900"

@@ -226,3 +226,5 @@
 	}}
 	oncancel={() => (deleting = null)}
 />
+
+<svelte:head><title>Wishlists · Starrylist</title></svelte:head>
