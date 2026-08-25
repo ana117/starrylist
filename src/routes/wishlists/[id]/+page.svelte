@@ -289,51 +289,48 @@
 						})}
 				/>
 
-				<button
-					type="button"
-					class="min-w-0 grow basis-40 text-left"
-					onclick={() => (editingItemId = item.id)}
-				>
-					<span
-						class="block truncate text-sm font-medium {item.included
+				<div class="min-w-0 grow basis-40">
+					<button
+						type="button"
+						class="block max-w-full truncate text-left text-sm font-medium {item.included
 							? ''
 							: 'line-through decoration-zinc-400'}"
+						onclick={() => (editingItemId = item.id)}
 					>
 						{item.name}
-					</span>
-					<span class="mt-0.5 block truncate text-xs text-zinc-400">
+					</button>
+					<span class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-400">
+						{#each item.links.slice(0, 2) as link (link.id)}
+							<a
+								href={link.url}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="max-w-32 truncate rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-indigo-950/60 dark:hover:text-indigo-300"
+								title={link.url}
+							>
+								{linkLabel(link)}
+							</a>
+						{/each}
+						{#if item.links.length > 2}
+							<button
+								type="button"
+								class="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-indigo-950/60 dark:hover:text-indigo-300"
+								title="Show all links"
+								onclick={() => (editingItemId = item.id)}
+							>
+								+{item.links.length - 2}
+							</button>
+						{/if}
+						{#if item.quantity !== 1}
+							<span class="tabular-nums">×{item.quantity}</span>
+						{/if}
 						{#if viewMode === 'flat'}
-							{#if item.quantity !== 1}×{item.quantity} ·
-							{/if}{categoryPath(app.doc.categories, item.categoryId) || 'Uncategorized'}
-						{:else if item.quantity !== 1}
-							×{item.quantity}
+							<span class="truncate">
+								{categoryPath(app.doc.categories, item.categoryId) || 'Uncategorized'}
+							</span>
 						{/if}
 					</span>
-				</button>
-
-				<span class="flex shrink-0 items-center gap-1">
-					{#each item.links.slice(0, 2) as link (link.id)}
-						<a
-							href={link.url}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="max-w-28 truncate rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-indigo-950/60 dark:hover:text-indigo-300"
-							title={link.url}
-						>
-							{linkLabel(link)}
-						</a>
-					{/each}
-					{#if item.links.length > 2}
-						<button
-							type="button"
-							class="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-indigo-950/60 dark:hover:text-indigo-300"
-							title="Show all links"
-							onclick={() => (editingItemId = item.id)}
-						>
-							+{item.links.length - 2}
-						</button>
-					{/if}
-				</span>
+				</div>
 
 				<span class="shrink-0 text-right">
 					{#if figure > 0}
