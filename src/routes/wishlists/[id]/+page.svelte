@@ -4,7 +4,7 @@
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import FieldInput from '$lib/components/FieldInput.svelte';
 	import Modal from '$lib/components/Modal.svelte';
-	import { activeFields, type Item, type Link } from '$lib/domain';
+	import { activeFields, type Category, type Item, type Link } from '$lib/domain';
 	import { categoryPath, flattenCategories } from '$lib/categories';
 	import { formatMoney } from '$lib/money';
 	import { app } from '$lib/state.svelte';
@@ -52,45 +52,55 @@
 
 	const visibleItems = $derived(wishlist ? sortItems(wishlist.items) : []);
 
-	interface Group {
+	interface CategoryNode {
 		id: string;
-		title: string;
+		name: string;
 		items: Item[];
+		count: number;
 		total: number;
+		children: CategoryNode[];
 	}
-
-	const groups = $derived.by<Group[]>(() => {
-		if (!wishlist) return [];
+	const categoryTree = $derived.by(() => {
+		const empty = { roots: [] as CategoryNode[], uncategorized: [] as Item[] };
+		const list = wishlist;
+		if (!list) return empty;
 		const stat = app.doc.settings.stat;
-		const totalOf = (items: Item[]): number =>
+		const categories = app.doc.categories;
+
+		const contributionOf = (items: Item[]): number =>
 			items.reduce((sum, item) => sum + itemContribution(item, stat), 0);
-		const result: Group[] = [];
-		const remaining = [...wishlist.items];
-		for (const flat of flattenCategories(app.doc.categories)) {
-			const inCategory = remaining.filter((i) => i.categoryId === flat.category.id);
-			if (inCategory.length === 0) continue;
-			result.push({
-				id: flat.category.id,
-				title: flat.path,
-				items: sortItems(inCategory),
-				total: totalOf(inCategory)
-			});
-			for (const item of inCategory) {
-				remaining.splice(
-					remaining.findIndex((r) => r.id === item.id),
-					1
-				);
-			}
+
+		function build(category: Category, allItems: Item[]): CategoryNode | null {
+			const children = categories
+				.filter((c) => c.parentId === category.id)
+				.sort((a, b) => a.name.localeCompare(b.name))
+				.map((c) => build(c, allItems))
+				.filter((c): c is CategoryNode => c !== null);
+			const items = sortItems(allItems.filter((i) => i.categoryId === category.id));
+			if (items.length === 0 && children.length === 0) return null;
+			return {
+				id: category.id,
+				name: category.name,
+				items,
+				count: items.length + children.reduce((n, c) => n + c.count, 0),
+				total: contributionOf(items) + children.reduce((n, c) => n + c.total, 0),
+				children
+			};
 		}
-		if (remaining.length > 0) {
-			result.push({
-				id: 'uncategorized',
-				title: 'Uncategorized',
-				items: sortItems(remaining),
-				total: totalOf(remaining)
-			});
-		}
-		return result;
+
+		const roots = categories
+			.filter((c) => c.parentId === null)
+			.sort((a, b) => a.name.localeCompare(b.name))
+			.map((c) => build(c, list.items))
+			.filter((c): c is CategoryNode => c !== null);
+
+		const uncategorized = sortItems(
+			list.items.filter(
+				(i) => i.categoryId === null || !categories.some((c) => c.id === i.categoryId)
+			)
+		);
+
+		return { roots, uncategorized };
 	});
 
 	function linkLabel(link: Link): string {
@@ -252,12 +262,18 @@
 	{:else}
 		{#snippet itemRow(item: Item)}
 			{@const figure = itemTotal(item, stat)}
+			<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+			<!-- Keyboard users open the editor via the item-name button; the card click is a pointer affordance. -->
 			<li
-				class="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border bg-white px-4 py-3 transition-colors dark:bg-zinc-900 {item.included
+				class="group flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border bg-white px-4 py-3 transition-colors hover:border-indigo-300 dark:bg-zinc-900 dark:hover:border-indigo-700 {item.included
 					? 'border-zinc-200 dark:border-zinc-700'
 					: 'border-dashed border-zinc-300 opacity-60 dark:border-zinc-700'} {draggingId === item.id
 					? 'ring-2 ring-indigo-400'
 					: ''}"
+				onclick={(e) => {
+					if ((e.target as HTMLElement).closest('a, button, input')) return;
+					editingItemId = item.id;
+				}}
 				ondragstart={(e) => {
 					draggingId = item.id;
 					e.dataTransfer?.setData('text/plain', item.id);
@@ -357,6 +373,36 @@
 			</li>
 		{/snippet}
 
+		{#snippet categoryCard(node: CategoryNode)}
+			<details
+				open
+				class="group/details rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+			>
+				<summary
+					class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden"
+				>
+					<span class="flex items-center gap-2 text-sm font-semibold">
+						<span class="text-xs text-zinc-400 transition-transform group-open/details:rotate-90"
+							>▸</span
+						>
+						{node.name}
+					</span>
+					<span class="text-xs font-medium text-zinc-400 tabular-nums">
+						{node.count}
+						{node.count === 1 ? 'item' : 'items'} · {formatMoney(node.total, app.doc.settings)}
+					</span>
+				</summary>
+				<div class="space-y-2 border-t border-zinc-100 p-2 dark:border-zinc-800">
+					{#each node.items as item (item.id)}
+						{@render itemRow(item)}
+					{/each}
+					{#each node.children as child (child.id)}
+						{@render categoryCard(child)}
+					{/each}
+				</div>
+			</details>
+		{/snippet}
+
 		{#if viewMode === 'flat'}
 			<ul class="space-y-2">
 				{#each visibleItems as item (item.id)}
@@ -365,10 +411,13 @@
 			</ul>
 		{:else}
 			<div class="space-y-3">
-				{#each groups as group (group.id)}
+				{#each categoryTree.roots as node (node.id)}
+					{@render categoryCard(node)}
+				{/each}
+				{#if categoryTree.uncategorized.length > 0}
 					<details
 						open
-						class="group/details rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+						class="group/details rounded-xl border border-dashed border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900"
 					>
 						<summary
 							class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden"
@@ -378,23 +427,20 @@
 									class="text-xs text-zinc-400 transition-transform group-open/details:rotate-90"
 									>▸</span
 								>
-								{group.title}
+								Uncategorized
 							</span>
 							<span class="text-xs font-medium text-zinc-400 tabular-nums">
-								{group.items.length}
-								{group.items.length === 1 ? 'item' : 'items'} · {formatMoney(
-									group.total,
-									app.doc.settings
-								)}
+								{categoryTree.uncategorized.length}
+								{categoryTree.uncategorized.length === 1 ? 'item' : 'items'}
 							</span>
 						</summary>
 						<ul class="space-y-2 border-t border-zinc-100 p-2 dark:border-zinc-800">
-							{#each group.items as item (item.id)}
+							{#each categoryTree.uncategorized as item (item.id)}
 								{@render itemRow(item)}
 							{/each}
 						</ul>
 					</details>
-				{/each}
+				{/if}
 			</div>
 		{/if}
 	{/if}
@@ -502,14 +548,6 @@
 							<li
 								class="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50 p-2 dark:bg-zinc-800/40"
 							>
-								{#if link.label}
-									<span
-										class="max-w-24 truncate rounded bg-white px-1.5 py-0.5 text-[11px] font-semibold text-zinc-600 ring-1 ring-zinc-200 dark:bg-zinc-900"
-										title={link.label}
-									>
-										{link.label}
-									</span>
-								{/if}
 								<input
 									type="url"
 									class="min-w-40 grow basis-52 rounded-lg border-zinc-200 text-xs dark:border-zinc-700"
@@ -525,7 +563,7 @@
 									type="text"
 									class="w-32 rounded-lg border-zinc-200 text-xs dark:border-zinc-700"
 									value={link.label ?? ''}
-									placeholder="Label (shop)"
+									placeholder="Label"
 									aria-label="Link label"
 									onchange={(e) =>
 										app.updateLink(wishlist.id, editingItem.id, link.id, {
@@ -575,29 +613,23 @@
 					</button>
 				</section>
 
+				{#if editingFields.length !== 0}
 				<section>
 					<h3 class="mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">
 						Custom values {editingCategory ? `— ${editingCategory.name}` : ''}
 					</h3>
-					{#if editingFields.length === 0}
-						<p class="text-xs text-zinc-400">
-							{editingCategory
-								? 'This category defines no custom fields.'
-								: 'Pick a category to see its custom fields.'}
-						</p>
-					{:else}
-						<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-							{#each editingFields as field (field.id)}
-								<FieldInput
-									{field}
-									value={editingItem.values[field.id]}
-									onchange={(value) =>
-										app.setCustomValue(wishlist.id, editingItem.id, field.id, value)}
-								/>
-							{/each}
-						</div>
-					{/if}
+					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+						{#each editingFields as field (field.id)}
+							<FieldInput
+								{field}
+								value={editingItem.values[field.id]}
+								onchange={(value) =>
+									app.setCustomValue(wishlist.id, editingItem.id, field.id, value)}
+							/>
+						{/each}
+					</div>
 				</section>
+				{/if}
 
 				<footer
 					class="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-700"
@@ -639,7 +671,7 @@
 							closeEditor();
 						}}
 					>
-						Delete item
+						Delete
 					</button>
 					<button
 						type="button"
@@ -658,7 +690,7 @@
 		title="Delete item"
 		message="'{wishlist.items.find((i) => i.id === deletingItemId)
 			?.name}' will be permanently removed."
-		confirmLabel="Delete item"
+		confirmLabel="Delete"
 		onconfirm={() => {
 			if (deletingItemId) app.deleteItem(wishlist.id, deletingItemId);
 			deletingItemId = null;
