@@ -4,6 +4,7 @@
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import FieldInput from '$lib/components/FieldInput.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import NumberStepper from '$lib/components/NumberStepper.svelte';
 	import { activeFields, type Category, type Item, type Link } from '$lib/domain';
 	import { categoryPath, flattenCategories } from '$lib/categories';
 	import { formatMoney } from '$lib/money';
@@ -493,20 +494,13 @@
 								app.updateItem(wishlist.id, editingItem.id, { name: e.currentTarget.value })}
 						/>
 					</label>
-					<label class="w-24">
+					<div>
 						<span class="mb-1 block text-xs font-medium text-zinc-500">Quantity</span>
-						<input
-							type="number"
-							min="1"
-							step="1"
-							class="w-full rounded-lg border-zinc-200 text-sm dark:border-zinc-700"
+						<NumberStepper
 							value={editingItem.quantity}
-							onchange={(e) =>
-								app.updateItem(wishlist.id, editingItem.id, {
-									quantity: Number(e.currentTarget.value)
-								})}
+							onchange={(v) => app.updateItem(wishlist.id, editingItem.id, { quantity: v })}
 						/>
-					</label>
+					</div>
 				</div>
 
 				<label class="block">
