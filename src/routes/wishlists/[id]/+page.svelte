@@ -150,6 +150,12 @@
 		editingItemId = null;
 		copyTarget = '';
 	}
+
+	let groupedRoot = $state<HTMLDivElement | null>(null);
+
+	function setAllDetails(open: boolean): void {
+		groupedRoot?.querySelectorAll('details').forEach((d) => (d.open = open));
+	}
 </script>
 
 {#if !wishlist}
@@ -214,6 +220,24 @@
 	</form>
 
 	<div class="mb-3 flex flex-wrap items-center justify-end gap-3">
+		{#if viewMode === 'grouped'}
+			<div class="flex items-center gap-1">
+				<button
+					type="button"
+					class="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+					onclick={() => setAllDetails(true)}
+				>
+					Expand all
+				</button>
+				<button
+					type="button"
+					class="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+					onclick={() => setAllDetails(false)}
+				>
+					Collapse all
+				</button>
+			</div>
+		{/if}
 		<div
 			class="flex items-center rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800"
 			role="group"
@@ -410,7 +434,7 @@
 				{/each}
 			</ul>
 		{:else}
-			<div class="space-y-3">
+			<div class="space-y-3" bind:this={groupedRoot}>
 				{#each categoryTree.roots as node (node.id)}
 					{@render categoryCard(node)}
 				{/each}
@@ -614,21 +638,21 @@
 				</section>
 
 				{#if editingFields.length !== 0}
-				<section>
-					<h3 class="mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">
-						Custom values {editingCategory ? `— ${editingCategory.name}` : ''}
-					</h3>
-					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-						{#each editingFields as field (field.id)}
-							<FieldInput
-								{field}
-								value={editingItem.values[field.id]}
-								onchange={(value) =>
-									app.setCustomValue(wishlist.id, editingItem.id, field.id, value)}
-							/>
-						{/each}
-					</div>
-				</section>
+					<section>
+						<h3 class="mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">
+							Custom values {editingCategory ? `— ${editingCategory.name}` : ''}
+						</h3>
+						<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+							{#each editingFields as field (field.id)}
+								<FieldInput
+									{field}
+									value={editingItem.values[field.id]}
+									onchange={(value) =>
+										app.setCustomValue(wishlist.id, editingItem.id, field.id, value)}
+								/>
+							{/each}
+						</div>
+					</section>
 				{/if}
 
 				<footer
