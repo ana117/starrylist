@@ -72,6 +72,7 @@ function parseItem(raw: unknown): Item | null {
 		name,
 		quantity: Math.max(1, Math.floor(num(raw.quantity) ?? 1)),
 		included: bool(raw.included, true),
+		bought: bool(raw.bought, false),
 		categoryId: str(raw.categoryId),
 		prices,
 		links,

@@ -46,6 +46,7 @@ function freshItem(name: string): Item {
 		name,
 		quantity: 1,
 		included: true,
+		bought: false,
 		categoryId: null,
 		prices: [],
 		links: [],
@@ -158,13 +159,14 @@ export class AppState {
 	updateItem(
 		wishlistId: string,
 		itemId: string,
-		patch: Partial<Pick<Item, 'name' | 'quantity' | 'included' | 'categoryId'>>
+		patch: Partial<Pick<Item, 'name' | 'quantity' | 'included' | 'bought' | 'categoryId'>>
 	): void {
 		const item = this.#item(wishlistId, itemId);
 		if (!item) return;
 		if (patch.name !== undefined) item.name = patch.name;
 		if (patch.quantity !== undefined) item.quantity = normalizeQuantity(patch.quantity);
 		if (patch.included !== undefined) item.included = patch.included;
+		if (patch.bought !== undefined) item.bought = patch.bought;
 		if (patch.categoryId !== undefined) item.categoryId = patch.categoryId || null;
 		this.#commit();
 	}

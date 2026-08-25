@@ -21,3 +21,11 @@ export function itemContribution(item: Item, stat: Stat): number {
 export function wishlistTotal(wishlist: Wishlist, stat: Stat): number {
 	return round2(wishlist.items.reduce((sum, item) => sum + itemContribution(item, stat), 0));
 }
+
+export function wishlistProgress(wishlist: Wishlist): { bought: number; total: number } {
+	const included = wishlist.items.filter((item) => item.included);
+	return {
+		bought: included.filter((item) => item.bought).length,
+		total: included.length
+	};
+}

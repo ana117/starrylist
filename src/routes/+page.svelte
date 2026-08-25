@@ -3,10 +3,11 @@
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import ProgressStar from '$lib/components/ProgressStar.svelte';
 	import type { Wishlist } from '$lib/domain';
 	import { formatMoney } from '$lib/money';
 	import { app } from '$lib/state.svelte';
-	import { wishlistTotal } from '$lib/stats';
+	import { wishlistProgress, wishlistTotal } from '$lib/stats';
 
 	const colors = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
@@ -68,6 +69,7 @@
 	<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 		{#each app.doc.wishlists as wishlist (wishlist.id)}
 			{@const total = wishlistTotal(wishlist, app.doc.settings.stat)}
+			{@const progress = wishlistProgress(wishlist)}
 			{@const count = wishlist.items.length}
 			<li>
 				<a
@@ -114,6 +116,14 @@
 					<p class="mt-3 text-lg font-bold text-indigo-700 tabular-nums dark:text-indigo-300">
 						{formatMoney(total, app.doc.settings)}
 					</p>
+					{#if progress.total > 0}
+						<div class="mt-2 flex items-center gap-1.5">
+							<ProgressStar fraction={progress.bought / progress.total} sizeClass="h-4 w-4" />
+							<span class="text-xs font-medium text-zinc-500 tabular-nums dark:text-zinc-400">
+								{progress.bought}/{progress.total}
+							</span>
+						</div>
+					{/if}
 				</a>
 			</li>
 		{/each}

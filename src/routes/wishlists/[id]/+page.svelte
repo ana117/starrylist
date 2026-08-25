@@ -5,11 +5,12 @@
 	import FieldInput from '$lib/components/FieldInput.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import NumberStepper from '$lib/components/NumberStepper.svelte';
+	import ProgressStar from '$lib/components/ProgressStar.svelte';
 	import { activeFields, type Category, type Item, type Link } from '$lib/domain';
 	import { categoryPath, flattenCategories } from '$lib/categories';
 	import { formatMoney } from '$lib/money';
 	import { app } from '$lib/state.svelte';
-	import { itemContribution, itemTotal, wishlistTotal } from '$lib/stats';
+	import { itemContribution, itemTotal, wishlistProgress, wishlistTotal } from '$lib/stats';
 
 	type SortMode = 'manual' | 'name' | 'total' | 'category';
 	type ViewMode = 'flat' | 'grouped';
@@ -240,6 +241,10 @@
 {:else}
 	{@const stat = app.doc.settings.stat}
 
+	{@const progress = wishlistProgress(wishlist)}
+	{@const progressPct =
+		progress.total === 0 ? 0 : Math.round((progress.bought / progress.total) * 100)}
+
 	<div class="mb-6 flex flex-wrap items-start justify-between gap-4">
 		<div class="flex items-center gap-3">
 			<span
@@ -255,13 +260,27 @@
 				</p>
 			</div>
 		</div>
-		<div class="text-right">
-			<p class="text-xs font-medium tracking-wide text-zinc-400 uppercase">Total ({stat})</p>
-			<p
-				class="text-3xl font-bold tracking-tight text-indigo-700 tabular-nums dark:text-indigo-300"
+		<div class="flex items-center gap-6">
+			<div
+				class="flex flex-col items-center gap-1"
+				title="{progress.bought} of {progress.total} included items bought ({progressPct}%)"
 			>
-				{formatMoney(wishlistTotal(wishlist, stat), app.doc.settings)}
-			</p>
+				<ProgressStar
+					fraction={progress.total === 0 ? 0 : progress.bought / progress.total}
+					sizeClass="h-10 w-10"
+				/>
+				<span class="text-xs font-semibold text-zinc-500 tabular-nums dark:text-zinc-400">
+					{progress.bought}/{progress.total} · {progressPct}%
+				</span>
+			</div>
+			<div class="text-right">
+				<p class="text-xs font-medium tracking-wide text-zinc-400 uppercase">Total ({stat})</p>
+				<p
+					class="text-3xl font-bold tracking-tight text-indigo-700 tabular-nums dark:text-indigo-300"
+				>
+					{formatMoney(wishlistTotal(wishlist, stat), app.doc.settings)}
+				</p>
+			</div>
 		</div>
 	</div>
 
@@ -397,12 +416,24 @@
 						})}
 				/>
 
+				<input
+					type="checkbox"
+					class="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+					checked={item.bought}
+					title="Bought"
+					aria-label="Mark {item.name} as bought"
+					onchange={(e) =>
+						app.updateItem(wishlist.id, item.id, {
+							bought: e.currentTarget.checked
+						})}
+				/>
+
 				<div class="min-w-0 grow basis-40">
 					<button
 						type="button"
-						class="block max-w-full truncate text-left text-sm font-medium {item.included
-							? ''
-							: 'line-through decoration-zinc-400'}"
+						class="block max-w-full truncate text-left text-sm font-medium {item.bought
+							? 'text-emerald-700 dark:text-emerald-400'
+							: ''} {item.included ? '' : 'line-through decoration-zinc-400'}"
 						onclick={() => (editingItemId = item.id)}
 					>
 						{item.name}
@@ -564,6 +595,18 @@
 							onchange={(v) => app.updateItem(wishlist.id, editingItem.id, { quantity: v })}
 						/>
 					</div>
+					<label class="flex cursor-pointer items-center gap-2 self-end pb-1.5 text-sm">
+						<input
+							type="checkbox"
+							class="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+							checked={editingItem.bought}
+							onchange={(e) =>
+								app.updateItem(wishlist.id, editingItem.id, {
+									bought: e.currentTarget.checked
+								})}
+						/>
+						Bought
+					</label>
 				</div>
 
 				<label class="block">

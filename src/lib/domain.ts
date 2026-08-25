@@ -23,6 +23,7 @@ export interface Item {
 	name: string;
 	quantity: number;
 	included: boolean;
+	bought: boolean;
 	categoryId: string | null;
 	prices: Price[];
 	links: Link[];
