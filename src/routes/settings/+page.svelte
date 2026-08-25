@@ -11,14 +11,19 @@
 		indonesian: 'Dot'
 	};
 
+	const pastePlaceholder = 'Paste a Snapshot here — starts with {"schemaVersion":1…}';
+
 	let currencyInput = $state(app.doc.settings.currency);
 	let currencyError = $state('');
 
-	let importTarget = $state<File | null>(null);
+	let pendingText = $state<string | null>(null);
 	let importPreview = $state<ReturnType<typeof parseSnapshot> | null>(null);
 	let importing = $state(false);
 	let importMessage = $state('');
 	let importError = $state('');
+	let pasteText = $state('');
+	let copied = $state(false);
+	let copyError = $state('');
 
 	function saveCurrency(): void {
 		const code = currencyInput.trim().toUpperCase();
@@ -31,42 +36,58 @@
 		currencyInput = code;
 	}
 
+	function beginImport(text: string): void {
+		importError = '';
+		importMessage = '';
+		try {
+			importPreview = parseSnapshot(text);
+		} catch {
+			importPreview = { ok: false, error: 'Could not read the snapshot.' };
+		}
+		pendingText = text;
+		importing = true;
+	}
+
 	async function pickImport(event: Event): Promise<void> {
 		const files = (event.currentTarget as HTMLInputElement).files;
 		const file = files?.[0] ?? null;
 		if (!file) return;
-		importTarget = file;
-		importError = '';
-		importMessage = '';
-		try {
-			importPreview = parseSnapshot(await file.text());
-		} catch {
-			importPreview = { ok: false, error: 'Could not read the file.' };
-		}
-		importing = true;
+		beginImport(await file.text());
+	}
+
+	function importPasted(): void {
+		const text = pasteText.trim();
+		if (!text) return;
+		beginImport(text);
 	}
 
 	function confirmImport(): void {
-		if (!importTarget) {
+		if (pendingText === null) {
 			importing = false;
 			return;
 		}
-		importTarget
-			.text()
-			.then((text) => {
-				const result = app.importSnapshot(text);
-				if (result.ok) {
-					importMessage = `Imported ${result.wishlists} wishlists, ${result.items} items, ${result.categories} categories.`;
-					currencyInput = app.doc.settings.currency;
-				} else {
-					importError = result.error;
-				}
-			})
-			.finally(() => {
-				importing = false;
-				importPreview = null;
-				importTarget = null;
-			});
+		const result = app.importSnapshot(pendingText);
+		if (result.ok) {
+			importMessage = `Imported ${result.wishlists} wishlists, ${result.items} items, ${result.categories} categories.`;
+			currencyInput = app.doc.settings.currency;
+			pasteText = '';
+		} else {
+			importError = result.error;
+		}
+		importing = false;
+		importPreview = null;
+		pendingText = null;
+	}
+
+	async function copySnapshot(): Promise<void> {
+		copyError = '';
+		try {
+			await navigator.clipboard.writeText(app.exportSnapshotText());
+			copied = true;
+			setTimeout(() => (copied = false), 2000);
+		} catch {
+			copyError = 'Could not access the clipboard — use Download instead.';
+		}
 	}
 
 	function exportSnapshot(): void {
@@ -154,19 +175,50 @@
 			export regularly, because what you export is all there is.
 		</p>
 
+		<p class="mt-6 mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">
+			Export — download a file or copy to clipboard
+		</p>
 		<div class="mt-4 flex flex-wrap items-center gap-3">
 			<button
 				type="button"
 				class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
 				onclick={exportSnapshot}
 			>
-				Export snapshot
+				Download snapshot
 			</button>
+			<button
+				type="button"
+				class="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+				onclick={copySnapshot}
+			>
+				{copied ? 'Copied ✓' : 'Copy to clipboard'}
+			</button>
+		</div>
+		{#if copyError}
+			<p class="mt-2 text-xs text-red-600">{copyError}</p>
+		{/if}
 
+		<p class="mt-6 mb-2 text-xs font-semibold tracking-wide text-zinc-400 uppercase">
+			Import — choose a file or paste below
+		</p>
+		<textarea
+			rows="5"
+			class="w-full rounded-lg border-zinc-200 font-mono text-xs dark:border-zinc-700"
+			placeholder={pastePlaceholder}
+			bind:value={pasteText}></textarea>
+		<div class="mt-3 flex flex-wrap items-center gap-3">
+			<button
+				type="button"
+				class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-40"
+				disabled={!pasteText.trim()}
+				onclick={importPasted}
+			>
+				Import pasted text
+			</button>
 			<label
 				class="cursor-pointer rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 			>
-				Choose file to import…
+				Choose file…
 				<input type="file" accept="application/json,.json" class="sr-only" onchange={pickImport} />
 			</label>
 		</div>
